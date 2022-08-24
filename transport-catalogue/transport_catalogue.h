@@ -12,7 +12,7 @@
 
 #include "geo.h"
 
-namespace trans_cat {
+namespace transport_catalogue {
 
 enum RouteType {
   LINEAR,
@@ -53,39 +53,38 @@ struct SDKHasher {
  */
 struct Bus {
   std::string name;
-  RouteType route_type;
+  RouteType route_type = RouteType::LINEAR;
   // указатель смотрит на элемент `deque` в транспортном справочнике
   std::vector<Stop*> stops;
 };
 
-}  // namespace trans_cat::detail
+}  // namespace transport_catalogue::detail
 
 /**
  * Информация о маршруте.
  */
 struct BusStats {
   // сколько остановок в маршруте, включая первую
-  unsigned int stops_count;
-  unsigned int unique_stops_count;
+  size_t stops_count = 0;
+  size_t unique_stops_count = 0;
   // длина маршрута в метрах
-  double route_length;
+  double route_length = 0;
   // as the crow flies
-  double crow_route_length;
+  double crow_route_length = 0;
 };
 
 /**
  * Информация об остановке: отсортированная коллекция уникальных марштуров,
  * которые проходят через остановку.
  */
-typedef std::set<std::string_view> BusesForStop;
+using BusesForStop = std::set<std::string_view>;
 
 class TransportCatalogue {
  public:
-  void AddStop(std::string_view name, double lat, double lng);
+  void AddStop(std::string_view name, geo::Coordinates);
   void AddBus(std::string_view name, RouteType route_type,
               std::vector<std::string_view> stop_names);
-  void SetDistance(std::string_view from, std::string_view to,
-                   unsigned int distance);
+  void SetDistance(std::string_view from, std::string_view to, size_t distance);
   std::optional<BusStats> GetBusStats(std::string_view bus_name) const;
   std::optional<BusesForStop> GetStopInfo(std::string_view stop_name) const;
  private:
@@ -121,4 +120,4 @@ class TransportCatalogue {
                                          const detail::Stop *to) const;
 };
 
-}  // namespace trans_cat
+}  // namespace transport_catalogue

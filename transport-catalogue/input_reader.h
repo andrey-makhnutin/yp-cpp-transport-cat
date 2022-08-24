@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include <deque>
 #include <istream>
 #include <string>
@@ -10,12 +11,16 @@
 #include "geo.h"
 #include "transport_catalogue.h"
 
-namespace trans_cat::input_reader {
+namespace transport_catalogue::input_reader {
 /**
  * Команда на добавление остановки в транспортный справочник.
  */
 struct AddStopCmd {
-  typedef std::pair<std::string_view, unsigned int> Distance;
+  /**
+   * Первый элемент - название остановки
+   * второй - расстояние до неё в метрах
+   */
+  using Distance = std::pair<std::string_view, size_t>;
   /**
    * Имя остановки.
    *
@@ -48,7 +53,7 @@ struct AddBusCmd {
   /**
    * Тип маршрута: кольцевой или линейный.
    */
-  RouteType route_type;
+  RouteType route_type = RouteType::LINEAR;
   /**
    * Список названий остановок в маршруте по порядку.
    * В кольцевом маршруте первая и последняя остановка совпадают.
@@ -124,8 +129,10 @@ std::vector<std::string_view> SplitNoWS(std::string_view line,
                                         std::string_view by);
 std::vector<std::string_view> SplitNoWS(std::string_view line, char by);
 
-}  // namespace trans_cat::input_reader::from_char_stream::detail
+}  // namespace transport_catalogue::input_reader::from_char_stream::detail
 
-}  // namespace trans_cat::input_reader::from_char_stream
+void ReadDB(TransportCatalogue &transport_catalogue, std::istream &sin);
 
-}  // namespace trans_cat::input_reader
+}  // namespace transport_catalogue::input_reader::from_char_stream
+
+}  // namespace transport_catalogue::input_reader

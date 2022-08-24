@@ -1,6 +1,5 @@
 #include "input_reader.h"
 
-#include <stddef.h>
 #include <stdlib.h>
 #include <algorithm>
 #include <cassert>
@@ -9,7 +8,7 @@
 
 using namespace std;
 
-namespace trans_cat::input_reader {
+namespace transport_catalogue::input_reader {
 
 namespace from_char_stream {
 
@@ -59,7 +58,7 @@ vector<string_view> SplitNoWS(string_view line, const string_view by) {
 }
 
 /**
- * Делит строку на части разделённые строкой `by`.
+ * Делит строку на части разделённые символом `by`.
  * Отрезаются все пробельные символы вокруг выделенных частей текста.
  * Если текст начинается с разделителя, первым элементом будет пустая строка.
  * Если текст кончается разделителем, последним элементом также будет пустая строка.
@@ -78,25 +77,25 @@ vector<string_view> SplitNoWS(string_view line, char by) {
  * параметр `string_view line`.
  */
 AddStopCmd ParseAddStopCmd(string_view line) {
-  auto parts1 = SplitNoWS(line, ':');
-  assert(parts1.size() == 2);
-  auto parts2 = SplitNoWS(parts1[1], ',');
-  assert(parts2.size() >= 2);
+  auto name_rest = SplitNoWS(line, ':');
+  assert(name_rest.size() == 2);
+  auto coords_distances = SplitNoWS(name_rest[1], ',');
+  assert(coords_distances.size() >= 2);
   char *endp = nullptr;
-  double lat = strtod(parts2[0].data(), &endp);
-  double lng = strtod(parts2[1].data(), &endp);
+  double lat = strtod(coords_distances[0].data(), &endp);
+  double lng = strtod(coords_distances[1].data(), &endp);
   vector<AddStopCmd::Distance> distances;
-  distances.reserve(parts2.size() - 2);
-  for (size_t i = 2; i < parts2.size(); ++i) {
-    auto dis_parts = SplitNoWS(parts2[i], " to "sv);
+  distances.reserve(coords_distances.size() - 2);
+  for (size_t i = 2; i < coords_distances.size(); ++i) {
+    auto dis_parts = SplitNoWS(coords_distances[i], " to "sv);
     assert(dis_parts.size() == 2);
     auto len_part = dis_parts[0];
-    assert(len_part.size() > 0 && len_part[len_part.size() - 1] == 'm');
-    unsigned int dis = 0;
+    assert(len_part.size() > 0 && len_part.back() == 'm');
+    size_t dis = 0;
     from_chars(len_part.data(), len_part.data() + len_part.size() - 1, dis);
     distances.emplace_back(dis_parts[1], dis);
   }
-  return {parts1[0], {lat, lng}, move(distances)};
+  return {name_rest[0], {lat, lng}, move(distances)};
 }
 
 /**
@@ -106,10 +105,10 @@ AddStopCmd ParseAddStopCmd(string_view line) {
  * параметр `string_view line`.
  */
 AddBusCmd ParseAddBusCmd(string_view line) {
-  auto parts1 = SplitNoWS(line, ':');
-  assert(parts1.size() == 2);
-  string_view name = parts1[0];
-  string_view stops = parts1[1];
+  auto name_route = SplitNoWS(line, ':');
+  assert(name_route.size() == 2);
+  string_view name = name_route[0];
+  string_view stops = name_route[1];
   size_t marker_pos = stops.find_first_of(">-"sv);
   assert(marker_pos != stops.npos);
   char marker = stops[marker_pos];
@@ -123,7 +122,7 @@ AddBusCmd ParseAddBusCmd(string_view line) {
   };
 }
 
-}  // namespace trans_cat::input_reader::from_char_stream::detail
+}  // namespace transport_catalogue::input_reader::from_char_stream::detail
 
 /**
  * Парсит команды из символьного потока `sin_` и складывает результат
@@ -152,6 +151,27 @@ void DbReader::Parse() {
   }
 }
 
-}  // namespace trans_cat::input_reader::from_char_stream
+/**
+ * Прочитать данные для транспортного справочника из символьного потока `sin`.
+ *
+ * См описание формата в `DbReader`
+ */
+void ReadDB(TransportCatalogue &transport_catalogue, std::istream &sin) {
+  DbReader input { sin };
+  for (const AddStopCmd &add_stop : input.GetAddStopCmds()) {
+    transport_catalogue.AddStop(add_stop.name, add_stop.coordinates);
+  }
+  for (const AddStopCmd &add_stop : input.GetAddStopCmds()) {
+    for (auto distance_pair : add_stop.distances) {
+      transport_catalogue.SetDistance(add_stop.name, distance_pair.first,
+                                      distance_pair.second);
+    }
+  }
+  for (const AddBusCmd &bus : input.GetAddBusCmds()) {
+    transport_catalogue.AddBus(bus.name, bus.route_type, bus.stop_names);
+  }
+}
 
-}  // namespace trans_cat::input_reader
+}  // namespace transport_catalogue::input_reader::from_char_stream
+
+}  // namespace transport_catalogue::input_reader

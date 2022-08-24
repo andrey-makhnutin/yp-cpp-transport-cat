@@ -7,19 +7,20 @@
 
 using namespace std;
 
-namespace trans_cat {
+namespace transport_catalogue {
 
 /**
  * Добавить остановку в транспортный справочник.
  *
  * Кидает `invalid_argument`, если добавить одну и ту же остановку дважды.
  */
-void TransportCatalogue::AddStop(string_view name, double lat, double lng) {
+void TransportCatalogue::AddStop(string_view name,
+                                 geo::Coordinates coordinates) {
   if (stops_by_name_.count(name) > 0) {
     throw invalid_argument("stop "s + string { name } + " already exists"s);
   }
-  auto &ref = stops_.emplace_back(detail::Stop { string { name },
-      geo::Coordinates { lat, lng }, { } });
+  auto &ref = stops_.emplace_back(detail::Stop { string { name }, coordinates,
+      { } });
   stops_by_name_.emplace(string_view { ref.name }, &ref);
 }
 
@@ -41,8 +42,7 @@ void TransportCatalogue::AddBus(string_view name, RouteType route_type,
   if (stop_names.size() == 0) {
     throw invalid_argument("empty stop list"s);
   }
-  if (route_type == RouteType::CIRCULAR
-      && stop_names[0] != stop_names[stop_names.size() - 1]) {
+  if (route_type == RouteType::CIRCULAR && stop_names[0] != stop_names.back()) {
     throw invalid_argument(
         "first and last stop in circular routes must be the same"s);
   }
@@ -87,7 +87,7 @@ optional<BusStats> TransportCatalogue::GetBusStats(string_view bus_name) const {
   // поэтому одинаковость остановок можно определить по равенству указателей на неё
   unordered_set<const detail::Stop*> uniq_stops { stops.begin(), stops.end() };
 
-  unsigned int stops_count;
+  size_t stops_count;
   double route_length = 0;
   double crow_route_length = 0;
   assert(stops.size() > 0);
@@ -114,13 +114,13 @@ optional<BusStats> TransportCatalogue::GetBusStats(string_view bus_name) const {
       stops_count = stops.size() + 1;
       // для подсчёта длины кольцевого маршрута нужно ещё добавить длину между последней
       // и первой остановками
-      auto [real, crow] = CalcDistance(stops[stops.size() - 1], stops[0]);
+      auto [real, crow] = CalcDistance(stops.back(), stops[0]);
       route_length += real;
       crow_route_length += crow;
       break;
   }
-  return BusStats { stops_count, static_cast<unsigned int>(uniq_stops.size()),
-      route_length, crow_route_length };
+  return BusStats { stops_count, uniq_stops.size(), route_length,
+      crow_route_length };
 }
 
 /**
@@ -145,7 +145,7 @@ std::optional<BusesForStop> TransportCatalogue::GetStopInfo(
  * Задать реальное расстояние от остановки `from` до `to` в метрах.
  */
 void TransportCatalogue::SetDistance(std::string_view from, std::string_view to,
-                                     unsigned int distance) {
+                                     size_t distance) {
   auto from_it = stops_by_name_.find(from);
   if (from_it == stops_by_name_.end()) {
     throw invalid_argument { "unknown stop "s + string { from } };
@@ -173,6 +173,7 @@ void TransportCatalogue::SetDistance(std::string_view from, std::string_view to,
  */
 pair<double, double> TransportCatalogue::CalcDistance(
     const detail::Stop *from, const detail::Stop *to) const {
+  // as the crow flies
   double crow_dis = geo::ComputeDistance(from->coords, to->coords);
   double real_dis = crow_dis;
   auto it = real_distances_.find( { from, to });
@@ -185,4 +186,4 @@ pair<double, double> TransportCatalogue::CalcDistance(
   return {real_dis, crow_dis};
 }
 
-}  // namespace trans_cat
+}  // namespace transport_catalogue

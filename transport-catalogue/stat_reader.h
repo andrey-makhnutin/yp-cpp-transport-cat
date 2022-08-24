@@ -6,7 +6,7 @@
 
 #include "transport_catalogue.h"
 
-namespace trans_cat::stat_reader {
+namespace transport_catalogue::stat_reader {
 
 namespace to_char_stream {
 
@@ -29,7 +29,7 @@ class StatsPrinter {
   std::ostream &sout_;
 };
 
-}  // namespace trans_cat::stat_reader::to_char_stream
+}  // namespace transport_catalogue::stat_reader::to_char_stream
 
 namespace from_char_stream {
 
@@ -61,13 +61,12 @@ class StatsRequestProcessor {
       sin_(sin) {
   }
 
-  void ProcessRequests(
-      const TransportCatalogue &tc,
-      to_char_stream::StatsPrinter &stats_printer);
+  void ProcessRequests(const TransportCatalogue&,
+                       to_char_stream::StatsPrinter&);
  private:
   std::istream &sin_;
 };
 
-}  // namespace trans_cat::stat_reader::from_char_stream
+}  // namespace transport_catalogue::stat_reader::from_char_stream
 
-}  // namespace trans_cat::stat_reader
+}  // namespace transport_catalogue::stat_reader

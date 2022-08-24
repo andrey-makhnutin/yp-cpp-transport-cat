@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace trans_cat::stat_reader {
+namespace transport_catalogue::stat_reader {
 
 namespace from_char_stream {
 
@@ -24,7 +24,7 @@ void RTrimStr(string &str) {
   }
 }
 
-}  // namespace trans_cat::stat_reader::from_char_stream::detail
+}  // namespace transport_catalogue::stat_reader::from_char_stream::detail
 
 /**
  * Парсит запросы на получение статистики из потока `sin_`,
@@ -32,7 +32,8 @@ void RTrimStr(string &str) {
  * с помощью `stats_printer`.
  */
 void StatsRequestProcessor::ProcessRequests(
-    const TransportCatalogue &tc, to_char_stream::StatsPrinter &stats_printer) {
+    const TransportCatalogue &transport_catalogue,
+    to_char_stream::StatsPrinter &stats_printer) {
   int req_count;
   sin_ >> req_count;
   while (req_count--) {
@@ -42,20 +43,20 @@ void StatsRequestProcessor::ProcessRequests(
       string bus_name;
       getline(sin_ >> ws, bus_name);
       detail::RTrimStr(bus_name);
-      const auto &bus_stats = tc.GetBusStats(bus_name);
+      const auto &bus_stats = transport_catalogue.GetBusStats(bus_name);
       stats_printer.PrintBusStats(bus_name, bus_stats);
     }
     if (cmd == "Stop"s) {
       string stop_name;
       getline(sin_ >> ws, stop_name);
       detail::RTrimStr(stop_name);
-      const auto &buses_for_stop = tc.GetStopInfo(stop_name);
+      const auto &buses_for_stop = transport_catalogue.GetStopInfo(stop_name);
       stats_printer.PrintStopInfo(stop_name, buses_for_stop);
     }
   }
 }
 
-}  // namespace trans_cat::stat_reader::from_char_stream
+}  // namespace transport_catalogue::stat_reader::from_char_stream
 
 namespace to_char_stream {
 
@@ -64,12 +65,12 @@ void StatsPrinter::PrintBusStats(string_view bus_name,
   sout_ << "Bus " << bus_name << ": ";
   if (bus_stats.has_value()) {
     assert(bus_stats->crow_route_length > 0);
-    auto old_prec = sout_.precision();
+    auto old_precision = sout_.precision();
     sout_ << setprecision(6) << bus_stats->stops_count << " stops on route, "
           << bus_stats->unique_stops_count << " unique stops, "
           << bus_stats->route_length << " route length, "
           << (bus_stats->route_length / bus_stats->crow_route_length)
-          << " curvature" << setprecision(old_prec) << endl;
+          << " curvature" << setprecision(old_precision) << endl;
   } else {
     sout_ << "not found" << endl;
   }
@@ -94,6 +95,6 @@ void StatsPrinter::PrintStopInfo(
   sout_ << endl;
 }
 
-}  // namespace trans_cat::stat_reader::to_char_stream
+}  // namespace transport_catalogue::stat_reader::to_char_stream
 
-}  // namespace trans_cat::stat_reader
+}  // namespace transport_catalogue::stat_reader
