@@ -1,5 +1,6 @@
 #include "geo.h"
 #include "input_reader.h"
+#include "json.h"
 #include "shapes.h"
 #include "stat_reader.h"
 #include "svg.h"
@@ -15,4 +16,5 @@ int main() {
   TestTransportCatalogue(tr);
   TestSVG(tr);
   TestShapes(tr);
+  TestJSON(tr);
 }
