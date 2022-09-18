@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stddef.h>
-#include <deque>
 #include <istream>
 #include <string>
 #include <string_view>
@@ -20,22 +19,21 @@ struct AddStopCmd {
    * Первый элемент - название остановки
    * второй - расстояние до неё в метрах
    */
-  using Distance = std::pair<std::string_view, size_t>;
+  using Distance = std::pair<std::string, size_t>;
+
   /**
    * Имя остановки.
-   *
-   * `string_view` ссылается на строку в родительском парсере, например в `DbFromTextStream`
    */
-  std::string_view name;
+  std::string name;
+
   /**
    * Координаты остановки.
    */
   geo::Coordinates coordinates;
+
   /**
    * Расстояния до соседних остановок.
    * Первый элемент пары - название соседней остановки, второй - расстояние в метрах.
-   *
-   * `string_view` ссылается на строку в родительском парсере, например в `DbFromTextStream`
    */
   std::vector<Distance> distances;
 };
@@ -46,10 +44,8 @@ struct AddStopCmd {
 struct AddBusCmd {
   /**
    * Название маршрута.
-   *
-   * `string_view` ссылается на строку в родительском парсере, например в `DbFromTextStream`
    */
-  std::string_view name;
+  std::string name;
   /**
    * Тип маршрута: кольцевой или линейный.
    */
@@ -60,7 +56,7 @@ struct AddBusCmd {
    *
    * `string_view` ссылается на строку в родительском парсере, например в `DbFromTextStream`
    */
-  std::vector<std::string_view> stop_names;
+  std::vector<std::string> stop_names;
 };
 
 namespace from_char_stream {
@@ -118,7 +114,6 @@ class DbReader {
   void Parse();
 
   std::istream &sin_;
-  std::deque<std::string> raw_strings_;
   std::vector<AddStopCmd> add_stop_cmds_;
   std::vector<AddBusCmd> add_bus_cmds_;
 };

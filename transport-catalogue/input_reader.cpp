@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cctype>
 #include <charconv>
+#include <iterator>
 
 using namespace std;
 
@@ -93,9 +94,9 @@ AddStopCmd ParseAddStopCmd(string_view line) {
     assert(len_part.size() > 0 && len_part.back() == 'm');
     size_t dis = 0;
     from_chars(len_part.data(), len_part.data() + len_part.size() - 1, dis);
-    distances.emplace_back(dis_parts[1], dis);
+    distances.emplace_back(string { dis_parts[1] }, dis);
   }
-  return {name_rest[0], {lat, lng}, move(distances)};
+  return {string {name_rest[0]}, {lat, lng}, move(distances)};
 }
 
 /**
@@ -108,17 +109,24 @@ AddBusCmd ParseAddBusCmd(string_view line) {
   auto name_route = SplitNoWS(line, ':');
   assert(name_route.size() == 2);
   string_view name = name_route[0];
-  string_view stops = name_route[1];
-  size_t marker_pos = stops.find_first_of(">-"sv);
-  assert(marker_pos != stops.npos);
-  char marker = stops[marker_pos];
+  string_view route = name_route[1];
+  size_t marker_pos = route.find_first_of(">-"sv);
+  assert(marker_pos != route.npos);
+  char marker = route[marker_pos];
   RouteType route_type =
       marker == '-' ? RouteType::LINEAR : RouteType::CIRCULAR;
+  auto stops_sv = SplitNoWS(route, marker);
+  vector<string> stops;
+  stops.reserve(stops_sv.size());
+  transform(stops_sv.begin(), stops_sv.end(), back_inserter(stops),
+            [](string_view sv) {
+              return string { sv };
+            });
 
   return {
-    name,
+    string {name},
     route_type,
-    SplitNoWS(stops, marker),
+    move(stops),
   };
 }
 
@@ -140,13 +148,11 @@ void DbReader::Parse() {
     if (cmd == "Stop"s) {
       string line;
       getline(sin_ >> ws, line);
-      const string &line_internal = raw_strings_.emplace_back(move(line));
-      add_stop_cmds_.push_back(ParseAddStopCmd(string_view { line_internal }));
+      add_stop_cmds_.push_back(ParseAddStopCmd(string_view { line }));
     } else if (cmd == "Bus"s) {
       string line;
       getline(sin_ >> ws, line);
-      const string &line_internal = raw_strings_.emplace_back(move(line));
-      add_bus_cmds_.push_back(ParseAddBusCmd(string_view { line_internal }));
+      add_bus_cmds_.push_back(ParseAddBusCmd(string_view { line }));
     }
   }
 }

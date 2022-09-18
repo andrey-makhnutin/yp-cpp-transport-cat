@@ -81,9 +81,9 @@ using BusesForStop = std::set<std::string_view>;
 
 class TransportCatalogue {
  public:
-  void AddStop(std::string_view name, geo::Coordinates);
-  void AddBus(std::string_view name, RouteType route_type,
-              std::vector<std::string_view> stop_names);
+  void AddStop(std::string name, geo::Coordinates);
+  void AddBus(std::string name, RouteType route_type,
+              const std::vector<std::string> &stop_names);
   void SetDistance(std::string_view from, std::string_view to, size_t distance);
   std::optional<BusStats> GetBusStats(std::string_view bus_name) const;
   std::optional<BusesForStop> GetStopInfo(std::string_view stop_name) const;
@@ -118,6 +118,8 @@ class TransportCatalogue {
 
   std::pair<double, double> CalcDistance(const detail::Stop *from,
                                          const detail::Stop *to) const;
+  std::vector<detail::Stop*> ResolveStopNames(
+      const std::vector<std::string> &stop_names);
 };
 
 }  // namespace transport_catalogue

@@ -97,19 +97,19 @@ void TestSplitNoWS() {
 
 void TestStopParser() {
   TEST_STOP_PARSER("Stop Biryulyovo Zapadnoye:55.574371,37.651700"s,
-                   "Biryulyovo Zapadnoye"sv, 55.574371, 37.651700);
+                   "Biryulyovo Zapadnoye"s, 55.574371, 37.651700);
   TEST_STOP_PARSER(
       "Stop    Biryulyovo Zapadnoye    : 55.574371    ,    37.651700"s,
-      "Biryulyovo Zapadnoye"sv, 55.574371, 37.651700);
+      "Biryulyovo Zapadnoye"s, 55.574371, 37.651700);
   TEST_STOP_PARSER("Stop Biryulyovo Zapadnoye: -55.574371, -37.651700"s,
-                   "Biryulyovo Zapadnoye"sv, -55.574371, -37.651700);
+                   "Biryulyovo Zapadnoye"s, -55.574371, -37.651700);
   TEST_STOP_PARSER("Stop Biryulyovo Zapadnoye: 55, 37"s,
-                   "Biryulyovo Zapadnoye"sv, 55.0, 37.0);
-  TEST_STOP_DIS_PARSER("123m to C", { "C"sv, 123 });
-  TEST_STOP_DIS_PARSER("123m to C e", { "C e"sv, 123 });
-  TEST_STOP_DIS_PARSER("123m to C, 432m to D", { "C"sv, 123 }, { "D"sv, 432 });
-  TEST_STOP_DIS_PARSER("   123m    to    C   ,    432m   to   D   ", { "C"sv,
-                       123 }, { "D"sv, 432 });
+                   "Biryulyovo Zapadnoye"s, 55.0, 37.0);
+  TEST_STOP_DIS_PARSER("123m to C", { "C"s, 123 });
+  TEST_STOP_DIS_PARSER("123m to C e", { "C e"s, 123 });
+  TEST_STOP_DIS_PARSER("123m to C, 432m to D", { "C"s, 123 }, { "D"s, 432 });
+  TEST_STOP_DIS_PARSER("   123m    to    C   ,    432m   to   D   ", { "C"s,
+                       123 }, { "D"s, 432 });
 }
 
 #define TEST_BUS_PARSER(str, _name, _route_type, _stops...) {     \
@@ -120,24 +120,24 @@ void TestStopParser() {
   const AddBusCmd &cmd = *cmds.begin();                           \
   ASSERT_EQUAL(cmd.name, _name);                                  \
   ASSERT_EQUAL(cmd.route_type, _route_type);                      \
-  ASSERT_EQUAL(cmd.stop_names, (vector<string_view> { _stops })); \
+  ASSERT_EQUAL(cmd.stop_names, (vector<string> { _stops }));      \
 }
 
 void TestBusParser() {
-  TEST_BUS_PARSER("Bus 750: Tolstopaltsevo - Marushkino - Rasskazovka"s,
-                  "750"sv, RouteType::LINEAR, "Tolstopaltsevo"sv,
-                  "Marushkino"sv, "Rasskazovka"sv);
-  TEST_BUS_PARSER("Bus 750:Tolstopaltsevo-Marushkino-Rasskazovka"s, "750"sv,
-                  RouteType::LINEAR, "Tolstopaltsevo"sv, "Marushkino"sv,
-                  "Rasskazovka"sv);
+  TEST_BUS_PARSER("Bus 750: Tolstopaltsevo - Marushkino - Rasskazovka"s, "750"s,
+                  RouteType::LINEAR, "Tolstopaltsevo"s, "Marushkino"s,
+                  "Rasskazovka"s);
+  TEST_BUS_PARSER("Bus 750:Tolstopaltsevo-Marushkino-Rasskazovka"s, "750"s,
+                  RouteType::LINEAR, "Tolstopaltsevo"s, "Marushkino"s,
+                  "Rasskazovka"s);
   TEST_BUS_PARSER(
       "   Bus    750   :   Tolstopaltsevo   -   Marushkino   -   Rasskazovka   "s,
-      "750"sv, RouteType::LINEAR, "Tolstopaltsevo"sv, "Marushkino"sv,
-      "Rasskazovka"sv);
+      "750"s, RouteType::LINEAR, "Tolstopaltsevo"s, "Marushkino"s,
+      "Rasskazovka"s);
   TEST_BUS_PARSER(
       "Bus 751: Tolstopaltsevo > Marushkino > Rasskazovka > Tolstopaltsevo"s,
-      "751"sv, RouteType::CIRCULAR, "Tolstopaltsevo"sv, "Marushkino"sv,
-      "Rasskazovka"sv, "Tolstopaltsevo"sv);
+      "751"s, RouteType::CIRCULAR, "Tolstopaltsevo"s, "Marushkino"s,
+      "Rasskazovka"s, "Tolstopaltsevo"s);
 }
 
 void TestDbReader() {
@@ -151,12 +151,12 @@ void TestDbReader() {
     DbReader input { sin };
     auto stop_cmds = input.GetAddStopCmds();
     ASSERT_EQUAL(stop_cmds.size(), 2u);
-    ASSERT_EQUAL(stop_cmds[0].name, "Biryusinka"sv);
-    ASSERT_EQUAL(stop_cmds[1].name, "Universam"sv);
+    ASSERT_EQUAL(stop_cmds[0].name, "Biryusinka"s);
+    ASSERT_EQUAL(stop_cmds[1].name, "Universam"s);
     auto bus_cmds = input.GetAddBusCmds();
-    ASSERT_EQUAL(bus_cmds[0].name, "750"sv);
-    ASSERT_EQUAL(bus_cmds[0].stop_names, (vector<string_view> {
-                     "Tolstopaltsevo"sv, "Marushkino"sv, "Rasskazovka"sv }));
+    ASSERT_EQUAL(bus_cmds[0].name, "750"s);
+    ASSERT_EQUAL(bus_cmds[0].stop_names, (vector<string> { "Tolstopaltsevo"s,
+                     "Marushkino"s, "Rasskazovka"s }));
     // проверяем, что `input` не "съел" весь поток ввода
     string next_line;
     getline(sin, next_line);
@@ -172,11 +172,11 @@ void TestDbReader() {
     DbReader input { sin };
     auto stop_cmds = input.GetAddStopCmds();
     ASSERT_EQUAL(stop_cmds.size(), 2u);
-    ASSERT_EQUAL(stop_cmds[0].name, "A"sv);
-    ASSERT_EQUAL(stop_cmds[1].name, "B"sv);
+    ASSERT_EQUAL(stop_cmds[0].name, "A"s);
+    ASSERT_EQUAL(stop_cmds[1].name, "B"s);
     auto bus_cmds = input.GetAddBusCmds();
-    ASSERT_EQUAL(bus_cmds[0].name, "1"sv);
-    ASSERT_EQUAL(bus_cmds[0].stop_names, (vector<string_view> { "A"sv, "B"sv }));
+    ASSERT_EQUAL(bus_cmds[0].name, "1"s);
+    ASSERT_EQUAL(bus_cmds[0].stop_names, (vector<string> { "A"s, "B"s }));
     // проверяем, что `input` не "съел" весь поток ввода
     string next_line;
     getline(sin, next_line);
@@ -202,7 +202,7 @@ void TestReadDB() {
   ASSERT_EQUAL(next_line, "1"s);
 }
 
-}
+}  // namespace transport_catalogue::input_reader::from_char_stream
 
 using transport_catalogue::input_reader::AddStopCmd;
 ostream& operator<<(ostream &os, const AddStopCmd::Distance &dis) {

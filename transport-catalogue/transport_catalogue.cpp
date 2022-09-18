@@ -13,14 +13,15 @@ namespace transport_catalogue {
  * Добавить остановку в транспортный справочник.
  *
  * Кидает `invalid_argument`, если добавить одну и ту же остановку дважды.
+ *
+ * Параметр `name` принимается по значению, т.к. всё равно будет скопирован.
  */
-void TransportCatalogue::AddStop(string_view name,
-                                 geo::Coordinates coordinates) {
+void TransportCatalogue::AddStop(string name, geo::Coordinates coordinates) {
   if (stops_by_name_.count(name) > 0) {
-    throw invalid_argument("stop "s + string { name } + " already exists"s);
+    throw invalid_argument("stop "s + name + " already exists"s);
   }
-  auto &ref = stops_.emplace_back(detail::Stop { string { name }, coordinates,
-      { } });
+  auto &ref = stops_.emplace_back(
+      detail::Stop { move(name), coordinates, { } });
   stops_by_name_.emplace(string_view { ref.name }, &ref);
 }
 
@@ -33,11 +34,13 @@ void TransportCatalogue::AddStop(string_view name,
  *  - добавить маршрут с остановкой, которой ещё нет в справочнике;
  *  - добавить маршрут без остановок;
  *  - добавить кольцевой маршрут, где первая и последняя остановки не совпадают.
+ *
+ * Параметр `name` принимается по значению, т.к. всё равно будет скопирован.
  */
-void TransportCatalogue::AddBus(string_view name, RouteType route_type,
-                                vector<string_view> stop_names) {
+void TransportCatalogue::AddBus(string name, RouteType route_type,
+                                const vector<string> &stop_names) {
   if (buses_by_name_.count(name) > 0) {
-    throw invalid_argument("bus "s + string { name } + " already exists"s);
+    throw invalid_argument("bus "s + name + " already exists"s);
   }
   if (stop_names.size() == 0) {
     throw invalid_argument("empty stop list"s);
@@ -46,16 +49,7 @@ void TransportCatalogue::AddBus(string_view name, RouteType route_type,
     throw invalid_argument(
         "first and last stop in circular routes must be the same"s);
   }
-
-  vector<detail::Stop*> stops;
-  stops.reserve(stop_names.size());
-  for (auto stop_name : stop_names) {
-    auto found_it = stops_by_name_.find(stop_name);
-    if (found_it == stops_by_name_.end()) {
-      throw invalid_argument("unknown bus stop "s + string { stop_name });
-    }
-    stops.push_back(found_it->second);
-  }
+  vector<detail::Stop*> stops = ResolveStopNames(stop_names);
 
   // знаем (и проверили), что у кольцевых маршрутов последняя остановка совпадает
   // с первой, поэтому её можно не хранить.
@@ -63,12 +57,32 @@ void TransportCatalogue::AddBus(string_view name, RouteType route_type,
     stops.resize(stops.size() - 1);
   }
 
-  const auto &ref = buses_.emplace_back(detail::Bus { string { name },
-      route_type, move(stops) });
-  buses_by_name_.emplace(string_view { ref.name }, &ref);
+  const auto &ref = buses_.emplace_back(detail::Bus { move(name), route_type,
+      move(stops) });
+  buses_by_name_.emplace(ref.name, &ref);
   for (auto &stop : ref.stops) {
-    stop->buses.emplace(string_view { ref.name });
+    stop->buses.emplace(ref.name);
   }
+}
+
+/**
+ * Переводит вектор с названиями остановок в вектор с указателями на объект-остановку
+ * в справочнике.
+ *
+ * Если остановка с таким именем не найдена, кидает `invalid_argument`.
+ */
+vector<detail::Stop*> TransportCatalogue::ResolveStopNames(
+    const vector<string> &stop_names) {
+  vector<detail::Stop*> stops;
+  stops.reserve(stop_names.size());
+  for (const auto &stop_name : stop_names) {
+    auto found_it = stops_by_name_.find(stop_name);
+    if (found_it == stops_by_name_.end()) {
+      throw invalid_argument("unknown bus stop "s + stop_name);
+    }
+    stops.push_back(found_it->second);
+  }
+  return stops;
 }
 
 /**
@@ -91,6 +105,7 @@ optional<BusStats> TransportCatalogue::GetBusStats(string_view bus_name) const {
   double route_length = 0;
   double crow_route_length = 0;
   assert(stops.size() > 0);
+
   // считаем расстояние по маршруту в одну сторону. Это можно делать одинаково
   // для линейных и кольцевых маршрутов
   for (size_t i = 1; i < stops.size(); ++i) {
@@ -101,17 +116,20 @@ optional<BusStats> TransportCatalogue::GetBusStats(string_view bus_name) const {
   switch (bus.route_type) {
     case RouteType::LINEAR:
       stops_count = stops.size() * 2 - 1;
+
       // для подсчёта длины линейного маршрута нужно ещё раз пройти по маршруту,
       // но уже в обратную сторону.
       for (size_t i = stops.size() - 1; i >= 1; --i) {
         auto [real, _] = CalcDistance(stops[i], stops[i - 1]);
         route_length += real;
       }
+
       // расстояние по прямой можно просто умножить на два
       crow_route_length *= 2;
       break;
     case RouteType::CIRCULAR:
       stops_count = stops.size() + 1;
+
       // для подсчёта длины кольцевого маршрута нужно ещё добавить длину между последней
       // и первой остановками
       auto [real, crow] = CalcDistance(stops.back(), stops[0]);
