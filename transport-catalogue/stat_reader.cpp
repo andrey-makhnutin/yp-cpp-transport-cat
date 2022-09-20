@@ -43,14 +43,14 @@ void StatsRequestProcessor::ProcessRequests(
       string bus_name;
       getline(sin_ >> ws, bus_name);
       detail::RTrimStr(bus_name);
-      const auto &bus_stats = transport_catalogue.GetBusStats(bus_name);
+      const auto bus_stats = transport_catalogue.GetBusStats(bus_name);
       stats_printer.PrintBusStats(bus_name, bus_stats);
     }
     if (cmd == "Stop"s) {
       string stop_name;
       getline(sin_ >> ws, stop_name);
       detail::RTrimStr(stop_name);
-      const auto &buses_for_stop = transport_catalogue.GetStopInfo(stop_name);
+      const auto buses_for_stop = transport_catalogue.GetStopInfo(stop_name);
       stats_printer.PrintStopInfo(stop_name, buses_for_stop);
     }
   }
