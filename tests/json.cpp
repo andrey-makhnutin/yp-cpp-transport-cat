@@ -10,7 +10,7 @@ using namespace std;
 
 ostream& operator<<(ostream&, const json::Node&);
 
-namespace json {
+namespace json::tests {
 
 Document ParseJSON(const string &str) {
   istringstream sin { str };
@@ -443,14 +443,14 @@ void TestParsingErrors() {
   CANT_PARSE(R"({,"hello":1})"s);
 }
 
-}  // namespace json
+}  // namespace json::tests
 
 ostream& operator<<(ostream &out, const json::Node &node) {
   throw runtime_error("not implemented"s);
 }
 
 void TestJSON(TestRunner &tr) {
-  using namespace json;
+  using namespace json::tests;
   RUN_TEST(tr, TestNode);
   RUN_TEST(tr, TestIntNode);
   RUN_TEST(tr, TestDoubleNode);

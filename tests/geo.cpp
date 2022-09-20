@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace transport_catalogue::geo {
+namespace transport_catalogue::geo::tests {
 
 void TestCoordinates() {
   Coordinates c1 { 55.574371, 37.651700 };
@@ -25,7 +25,7 @@ void TestCoordinates() {
   ASSERT_NOT_EQUAL(c1, c6);
 }
 
-}  // namespace transport_catalogue::geo
+}  // namespace transport_catalogue::geo::tests
 
 using transport_catalogue::geo::Coordinates;
 ostream& operator<<(ostream &os, const Coordinates &c) {
@@ -34,7 +34,7 @@ ostream& operator<<(ostream &os, const Coordinates &c) {
 }
 
 void TestGeo(TestRunner &tr) {
-  using namespace transport_catalogue::geo;
+  using namespace transport_catalogue::geo::tests;
 
   RUN_TEST(tr, TestCoordinates);
 }

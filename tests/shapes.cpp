@@ -10,7 +10,7 @@
 using namespace std;
 using namespace svg;
 
-namespace shapes {
+namespace shapes::tests {
 
 #define TEST_RENDER(obj_, texts_...) {                                          \
   Document doc;                                                                 \
@@ -61,7 +61,7 @@ void TestTriangle() {
 }
 
 void TestShapes(TestRunner &tr) {
-  using namespace shapes;
+  using namespace shapes::tests;
 
   RUN_TEST(tr, TestStar);
   RUN_TEST(tr, TestSnowman);

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace svg {
+namespace svg::tests {
 
 #define TEST_RENDER(el, text) {                                                 \
   Document doc;                                                                 \
@@ -109,10 +109,10 @@ void TestColor() {
   TEST_COLOR_PRINT(Rgba(1u, 2u, 3u, 0.7), "rgba(1,2,3,0.7)"s);
 }
 
-}
+}  // namespace svg::tests
 
 void TestSVG(TestRunner &tr) {
-  using namespace svg;
+  using namespace svg::tests;
 
   RUN_TEST(tr, TestCircle);
   RUN_TEST(tr, TestPolyline);

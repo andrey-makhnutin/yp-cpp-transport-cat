@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace transport_catalogue::input_reader::from_char_stream {
+namespace transport_catalogue::input_reader::from_char_stream::tests {
 
 #define TEST_SPLIT_NO_WS(line, by, expected_parts...) {        \
   auto parts = detail::SplitNoWS(line, by);                    \
@@ -202,7 +202,7 @@ void TestReadDB() {
   ASSERT_EQUAL(next_line, "1"s);
 }
 
-}  // namespace transport_catalogue::input_reader::from_char_stream
+}  // namespace transport_catalogue::input_reader::from_char_stream::tests
 
 using transport_catalogue::input_reader::AddStopCmd;
 ostream& operator<<(ostream &os, const AddStopCmd::Distance &dis) {
@@ -211,7 +211,7 @@ ostream& operator<<(ostream &os, const AddStopCmd::Distance &dis) {
 
 void TestInputReader(TestRunner &tr) {
   {
-    using namespace transport_catalogue::input_reader::from_char_stream;
+    using namespace transport_catalogue::input_reader::from_char_stream::tests;
 
     RUN_TEST(tr, TestSplitNoWS);
     RUN_TEST(tr, TestStopParser);

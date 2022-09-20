@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace transport_catalogue::stat_reader::from_char_stream {
+namespace transport_catalogue::stat_reader::from_char_stream::tests {
 
 void TestStatRequestProcessor() {
   istringstream sin { "5\n"
@@ -42,9 +42,9 @@ void TestStatRequestProcessor() {
   ASSERT_EQUAL(rest, "Hello Rest"s);
 }
 
-}  // namespace transport_catalogue::stat_reader::from_char_stream
+}  // namespace transport_catalogue::stat_reader::from_char_stream::tests
 
-namespace transport_catalogue::stat_reader::to_char_stream {
+namespace transport_catalogue::stat_reader::to_char_stream::tests {
 
 void TestBusStatPrinter() {
   {
@@ -108,16 +108,16 @@ void TestStopInfoPrinter() {
   ASSERT_EQUAL(line, "Stop Stop3: no buses")
 }
 
-}  // namespace transport_catalogue::stat_reader::to_char_stream
+}  // namespace transport_catalogue::stat_reader::to_char_stream::tests
 
 void TestStatReader(TestRunner &tr) {
   {
-    using namespace transport_catalogue::stat_reader::from_char_stream;
+    using namespace transport_catalogue::stat_reader::from_char_stream::tests;
 
     RUN_TEST(tr, TestStatRequestProcessor);
   }
   {
-    using namespace transport_catalogue::stat_reader::to_char_stream;
+    using namespace transport_catalogue::stat_reader::to_char_stream::tests;
 
     RUN_TEST(tr, TestBusStatPrinter);
     RUN_TEST(tr, TestStopInfoPrinter);

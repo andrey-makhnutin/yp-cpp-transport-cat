@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace transport_catalogue {
+namespace transport_catalogue::tests {
 
 void TestAddStop() {
   TransportCatalogue tc;
@@ -121,9 +121,8 @@ void TestGetBusStats() {
     tc.SetDistance("Marushkino"sv, "Tolstopaltsevo"sv, 1001);  // + 1 (есть расстояние в ту сторону)
     tc.SetDistance("Tolstopaltsevo"sv, "Marushkino"sv, 1004);  // + 0 (не должно быть учтено)
     tc.SetDistance("Biryulyovo Zapadnoye"sv, "Tolstopaltsevo"sv, 1016);  // + 16 (есть расстояние в обратную сторону)
-    tc.AddBus("750"s, RouteType::CIRCULAR,
-              { "Rasskazovka"s, "Marushkino"s, "Tolstopaltsevo"s,
-                  "Biryulyovo Zapadnoye"s, "Rasskazovka"s });
+    tc.AddBus("750"s, RouteType::CIRCULAR, { "Rasskazovka"s, "Marushkino"s,
+                  "Tolstopaltsevo"s, "Biryulyovo Zapadnoye"s, "Rasskazovka"s });
     auto bi = tc.GetBusStats("750"sv);
     ASSERT(bi.has_value());
     // кольцевой маршрут A -> B -> C -> D -> A: 5 остановок, 4 уникальные, 4 км
@@ -186,10 +185,10 @@ void TestGetStopInfo() {
   }
 }
 
-}
+}  // namespace transport_catalogue::tests
 
 void TestTransportCatalogue(TestRunner &tr) {
-  using namespace transport_catalogue;
+  using namespace transport_catalogue::tests;
 
   RUN_TEST(tr, TestAddStop);
   RUN_TEST(tr, TestAddBus);
