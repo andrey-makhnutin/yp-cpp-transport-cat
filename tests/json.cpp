@@ -445,7 +445,7 @@ void TestParsingErrors() {
 
 }  // namespace json::tests
 
-ostream& operator<<(ostream &out, const json::Node &node) {
+ostream& operator<<(ostream&, const json::Node&) {
   throw runtime_error("not implemented"s);
 }
 

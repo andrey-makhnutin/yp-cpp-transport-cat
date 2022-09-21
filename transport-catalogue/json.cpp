@@ -190,7 +190,7 @@ class NodeParser {
       }
       result.push_back(c);
     }
-    return move(result);
+    return result;
   }
 
   /**
@@ -222,7 +222,7 @@ class NodeParser {
         Fail("error reading array: expected comma, got '"s + c + "'"s);
       }
     }
-    return move(result);
+    return result;
   }
 
   /**
@@ -269,7 +269,7 @@ class NodeParser {
       }
     }
 
-    return move(result);
+    return result;
   }
 
   /**
