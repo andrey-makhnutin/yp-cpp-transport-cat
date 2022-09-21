@@ -6,6 +6,8 @@
 #include "svg.h"
 #include "test_framework.h"
 #include "transport_catalogue.h"
+#include "json_reader.h"
+#include "request_handler.h"
 
 int main() {
   TestRunner tr;
@@ -17,4 +19,6 @@ int main() {
   TestSVG(tr);
   TestShapes(tr);
   TestJSON(tr);
+  TestJSONReader(tr);
+  TestRequestHandler(tr);
 }

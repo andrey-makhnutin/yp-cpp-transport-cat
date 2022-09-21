@@ -10,14 +10,10 @@
 #include <utility>
 #include <vector>
 
+#include "domain.h"
 #include "geo.h"
 
 namespace transport_catalogue {
-
-enum RouteType {
-  LINEAR,
-  CIRCULAR,
-};
 
 namespace detail {
 
@@ -60,25 +56,6 @@ struct Bus {
 
 }  // namespace transport_catalogue::detail
 
-/**
- * Информация о маршруте.
- */
-struct BusStats {
-  // сколько остановок в маршруте, включая первую
-  size_t stops_count = 0;
-  size_t unique_stops_count = 0;
-  // длина маршрута в метрах
-  double route_length = 0;
-  // as the crow flies
-  double crow_route_length = 0;
-};
-
-/**
- * Информация об остановке: отсортированная коллекция уникальных марштуров,
- * которые проходят через остановку.
- */
-using BusesForStop = std::set<std::string_view>;
-
 class TransportCatalogue {
  public:
   void AddStop(std::string name, geo::Coordinates);
@@ -88,12 +65,14 @@ class TransportCatalogue {
   std::optional<BusStats> GetBusStats(std::string_view bus_name) const;
   std::optional<BusesForStop> GetStopInfo(std::string_view stop_name) const;
  private:
+
   /**
    * коллекция уникальных остановок. Важно, чтобы коллекция была `deque`,
    * чтобы указатели на элементы коллекции не инвалидировались при добавлении
    * новых элементов.
    */
   std::deque<detail::Stop> stops_;
+
   /**
    * мапа <имя остановки> -> <указатель на остановку>
    * `string_view` смотрит на строку в самой структуре остановки
@@ -106,11 +85,13 @@ class TransportCatalogue {
    * новых элементов.
    */
   std::deque<detail::Bus> buses_;
+
   /**
    * мапа <имя маршрута> -> <указатель на маршрут>
    * `string_view` смотрит на строку в самой структуре маршрута
    */
   std::unordered_map<std::string_view, const detail::Bus*> buses_by_name_;
+
   /**
    * мапа с реальным расстоянием между остановками `first` и `second`
    */
