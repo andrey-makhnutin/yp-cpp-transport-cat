@@ -2,8 +2,12 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iterator>
+#include <set>
 #include <stdexcept>
 #include <unordered_set>
+
+#include "geo.h"
 
 using namespace std;
 
@@ -20,8 +24,7 @@ void TransportCatalogue::AddStop(string name, geo::Coordinates coordinates) {
   if (stops_by_name_.count(name) > 0) {
     throw invalid_argument("stop "s + name + " already exists"s);
   }
-  auto &ref = stops_.emplace_back(
-      detail::Stop { move(name), coordinates, { } });
+  auto &ref = stops_.emplace_back(Stop { move(name), coordinates });
   stops_by_name_.emplace(string_view { ref.name }, &ref);
 }
 
@@ -49,7 +52,7 @@ void TransportCatalogue::AddBus(string name, RouteType route_type,
     throw invalid_argument(
         "first and last stop in circular routes must be the same"s);
   }
-  vector<detail::Stop*> stops = ResolveStopNames(stop_names);
+  vector<const Stop*> stops = ResolveStopNames(stop_names);
 
   // знаем (и проверили), что у кольцевых маршрутов последняя остановка совпадает
   // с первой, поэтому её можно не хранить.
@@ -57,11 +60,12 @@ void TransportCatalogue::AddBus(string name, RouteType route_type,
     stops.resize(stops.size() - 1);
   }
 
-  const auto &ref = buses_.emplace_back(detail::Bus { move(name), route_type,
-      move(stops) });
+  const auto &ref = buses_.emplace_back(
+      Bus { move(name), route_type, move(stops) });
   buses_by_name_.emplace(ref.name, &ref);
-  for (auto &stop : ref.stops) {
-    stop->buses.emplace(ref.name);
+  for (const Stop *stop : ref.stops) {
+    auto &buses_for_stop = buses_for_stop_[stop];
+    buses_for_stop.emplace(ref.name);
   }
 }
 
@@ -71,9 +75,9 @@ void TransportCatalogue::AddBus(string name, RouteType route_type,
  *
  * Если остановка с таким именем не найдена, кидает `invalid_argument`.
  */
-vector<detail::Stop*> TransportCatalogue::ResolveStopNames(
+vector<const Stop*> TransportCatalogue::ResolveStopNames(
     const vector<string> &stop_names) {
-  vector<detail::Stop*> stops;
+  vector<const Stop*> stops;
   stops.reserve(stop_names.size());
   for (const auto &stop_name : stop_names) {
     auto found_it = stops_by_name_.find(stop_name);
@@ -94,12 +98,12 @@ optional<BusStats> TransportCatalogue::GetBusStats(string_view bus_name) const {
   if (it == buses_by_name_.end()) {
     return nullopt;
   }
-  const detail::Bus &bus = *it->second;
+  const Bus &bus = *it->second;
   const auto &stops = bus.stops;
 
   // считаем, что одна остановка не может храниться в справочнике дважды,
   // поэтому одинаковость остановок можно определить по равенству указателей на неё
-  unordered_set<const detail::Stop*> uniq_stops { stops.begin(), stops.end() };
+  unordered_set<const Stop*> uniq_stops { stops.begin(), stops.end() };
 
   size_t stops_count;
   double route_length = 0;
@@ -150,13 +154,18 @@ optional<BusStats> TransportCatalogue::GetBusStats(string_view bus_name) const {
  */
 std::optional<BusesForStop> TransportCatalogue::GetStopInfo(
     std::string_view stop_name) const {
-  auto it = stops_by_name_.find(stop_name);
-  if (it == stops_by_name_.end()) {
+  auto stop_it = stops_by_name_.find(stop_name);
+  if (stop_it == stops_by_name_.end()) {
     return nullopt;
   }
-  const detail::Stop &stop = *it->second;
+  auto buses_it = buses_for_stop_.find(stop_it->second);
 
-  return stop.buses;
+  // если элемента в мапе нет, значит через остановку не проходит ни один маршрут,
+  // и в этом случае возвращаем пустое множество.
+  if (buses_it == buses_for_stop_.end()) {
+    return BusesForStop { };
+  }
+  return buses_it->second;
 }
 
 /**
@@ -181,6 +190,19 @@ void TransportCatalogue::SetDistance(std::string_view from, std::string_view to,
 }
 
 /**
+ * Возвращает вектор с указателями на все маршруты в справочнике.
+ */
+vector<const Bus*> TransportCatalogue::GetBuses() const {
+  vector<const Bus*> result;
+  result.reserve(buses_.size());
+  transform(buses_.begin(), buses_.end(), back_inserter(result),
+            [](const Bus &bus) {
+              return &bus;
+            });
+  return result;
+}
+
+/**
  * Рассчитать расстояние от остановки `from` до `to` в метрах.
  * Учитываются реальные расстояния, заданные с помощью функции `SetDistance`
  * между остановками (в ту или обратную сторону). А если таковых нет,
@@ -189,8 +211,8 @@ void TransportCatalogue::SetDistance(std::string_view from, std::string_view to,
  * Возвращает пару, где первый элемент - расстояние с учётом реальных данных,
  * а второй - расстояние по "прямой".
  */
-pair<double, double> TransportCatalogue::CalcDistance(
-    const detail::Stop *from, const detail::Stop *to) const {
+pair<double, double> TransportCatalogue::CalcDistance(const Stop *from,
+                                                      const Stop *to) const {
   // as the crow flies
   double crow_dis = geo::ComputeDistance(from->coords, to->coords);
   double real_dis = crow_dis;

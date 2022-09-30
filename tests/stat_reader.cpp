@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 
+#include "../transport-catalogue/transport_catalogue.h"
 #include "test_framework.h"
 
 using namespace std;

@@ -7,6 +7,8 @@
 #include <charconv>
 #include <iterator>
 
+#include "transport_catalogue.h"
+
 using namespace std;
 
 namespace transport_catalogue::input_reader {

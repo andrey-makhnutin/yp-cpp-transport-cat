@@ -4,7 +4,11 @@
 #include <optional>
 #include <string_view>
 
-#include "transport_catalogue.h"
+#include "domain.h"
+
+namespace transport_catalogue {
+class TransportCatalogue;
+} /* namespace transport_catalogue */
 
 namespace transport_catalogue::stat_reader {
 

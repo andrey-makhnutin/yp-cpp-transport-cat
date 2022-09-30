@@ -7,8 +7,12 @@
 #include <utility>
 #include <vector>
 
+#include "domain.h"
 #include "geo.h"
-#include "transport_catalogue.h"
+
+namespace transport_catalogue {
+class TransportCatalogue;
+} /* namespace transport_catalogue */
 
 namespace transport_catalogue::input_reader {
 /**

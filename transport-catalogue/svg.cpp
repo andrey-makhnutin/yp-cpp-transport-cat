@@ -113,7 +113,31 @@ ostream& operator<<(ostream &out, svg::Color color) {
   return out;
 }
 
+ostream& operator<<(ostream &out, svg::Point point) {
+  out << '{' << point.x << ", "sv << point.y << '}';
+  return out;
+}
+
 namespace svg {
+
+// ----------- Color --------------------
+
+bool Rgb::operator==(Rgb other) const {
+  return red == other.red && green == other.green && blue == other.blue;
+}
+
+bool Rgba::operator==(Rgba other) const {
+  return red == other.red && green == other.green && blue == other.blue
+      && opacity == other.opacity;
+}
+
+// ----------- Point --------------------
+
+bool Point::operator==(Point other) const {
+  return x == other.x && y == other.y;
+}
+
+// ----------- Object -------------------
 
 void Object::Render(const RenderContext &context) const {
   context.RenderIndent();

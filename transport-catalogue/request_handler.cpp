@@ -1,7 +1,8 @@
 #include "request_handler.h"
 
 #include <algorithm>
-#include <optional>
+#include <sstream>
+#include <stdexcept>
 
 #include "transport_catalogue.h"
 
@@ -73,10 +74,12 @@ class StatRequestVariantProcessor {
 
   StatRequestVariantProcessor(
       TransportCatalogue &transport_catalogue,
-      AbstractStatResponsePrinter &stat_response_printer)
+      AbstractStatResponsePrinter &stat_response_printer,
+      const optional<map_renderer::RenderSettings> &render_settings)
       :
       transport_catalogue_(transport_catalogue),
-      stat_response_printer_(stat_response_printer) {
+      stat_response_printer_(stat_response_printer),
+      render_settings_(render_settings) {
   }
 
   void operator()(const StopStatRequest &request) {
@@ -98,36 +101,63 @@ class StatRequestVariantProcessor {
       stat_response_printer_.PrintResponse(request.id, { });
     }
   }
+
+  void operator()(const MapRequest &request) {
+    if (!render_settings_) {
+      stat_response_printer_.PrintResponse(request.id, { });
+    } else {
+      ostringstream sout;
+      map_renderer::SvgMapRenderer map_renderer { transport_catalogue_, sout };
+      map_renderer.RenderMap(*render_settings_);
+      stat_response_printer_.PrintResponse(request.id,
+                                           MapResponse { sout.str() });
+    }
+  }
  private:
   TransportCatalogue &transport_catalogue_;
   AbstractStatResponsePrinter &stat_response_printer_;
+  const optional<map_renderer::RenderSettings> &render_settings_;
 
 };
 
 }  // namespace transport_catalogue::request_handler::detail
 
 /**
- * Прочитать все запросы к транспортному справочнику с помощью `request_reader`,
- * отправить эти запросы в `transport_catalogue` и напечатать ответы на запросы
+ * Прочитать все запросы к транспортному справочнику из `request_reader_`,
+ * отправить эти запросы в `transport_catalogue_` и напечатать ответы на запросы
  * статистики с помощью `stat_response_printer`.
  */
-void ProcessRequests(TransportCatalogue &transport_catalogue,
-                     const AbstractBufferingRequestReader &request_reader,
-                     AbstractStatResponsePrinter &stat_response_printer) {
+void BufferingRequestHandler::ProcessRequests(
+    AbstractStatResponsePrinter &stat_response_printer) {
 
   detail::BaseRequestVariantProcessor base_request_processor {
-      transport_catalogue };
-  for (const auto &base_request : request_reader.GetBaseRequests()) {
+      transport_catalogue_ };
+  for (const auto &base_request : request_reader_.GetBaseRequests()) {
     visit(base_request_processor, base_request);
   }
   base_request_processor.FlushStopRequests();
   base_request_processor.FlushBusRequests();
 
   detail::StatRequestVariantProcessor stat_request_processor {
-      transport_catalogue, stat_response_printer };
-  for (const auto &stat_request : request_reader.GetStatRequests()) {
+      transport_catalogue_, stat_response_printer, request_reader_
+          .GetRenderSettings() };
+  for (const auto &stat_request : request_reader_.GetStatRequests()) {
     visit(stat_request_processor, stat_request);
   }
+}
+
+/**
+ * Отрисовать карту маршрутов справочника с помощью `map_renderer`.
+ * Если во входных данных к справочнику не было настроек отрисовки карты,
+ * кидается исключение.
+ */
+void BufferingRequestHandler::RenderMap(MapRenderer &map_renderer) {
+  const auto &render_settings = request_reader_.GetRenderSettings();
+  if (!render_settings) {
+    throw runtime_error(
+        "Can't render map: render settings were not specified"s);
+  }
+  map_renderer.RenderMap(*render_settings);
 }
 
 }  // namespace transport_catalogue::request_handler

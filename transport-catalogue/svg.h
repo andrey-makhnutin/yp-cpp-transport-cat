@@ -23,6 +23,8 @@ struct Rgb {
   uint8_t red = 0;
   uint8_t green = 0;
   uint8_t blue = 0;
+
+  bool operator==(Rgb other) const;
 };
 
 struct Rgba {
@@ -39,6 +41,8 @@ struct Rgba {
   uint8_t green = 0;
   uint8_t blue = 0;
   double opacity = 1.0;
+
+  bool operator==(Rgba other) const;
 };
 
 using Color = std::variant<std::monostate,std::string,Rgb,Rgba>;
@@ -58,11 +62,25 @@ enum class StrokeLineJoin {
   ROUND,
 };
 
+struct Point {
+  Point() = default;
+  Point(double x, double y)
+      :
+      x(x),
+      y(y) {
+  }
+  double x = 0;
+  double y = 0;
+
+  bool operator==(Point other) const;
+};
+
 }  // namespace svg
 
 std::ostream& operator<<(std::ostream &out, svg::StrokeLineCap);
 std::ostream& operator<<(std::ostream &out, svg::StrokeLineJoin);
 std::ostream& operator<<(std::ostream &out, svg::Color);
+std::ostream& operator<<(std::ostream &out, svg::Point);
 
 namespace svg {
 
@@ -109,17 +127,6 @@ class Object {
   void Render(const RenderContext &context) const;
  private:
   virtual void RenderObject(const RenderContext &context) const = 0;
-};
-
-struct Point {
-  Point() = default;
-  Point(double x, double y)
-      :
-      x(x),
-      y(y) {
-  }
-  double x = 0;
-  double y = 0;
 };
 
 /**

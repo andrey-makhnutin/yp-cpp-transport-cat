@@ -3,7 +3,6 @@
 #include <stddef.h>
 #include <deque>
 #include <optional>
-#include <set>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -11,17 +10,10 @@
 #include <vector>
 
 #include "domain.h"
-#include "geo.h"
 
 namespace transport_catalogue {
 
 namespace detail {
-
-struct Stop {
-  std::string name;
-  geo::Coordinates coords;
-  std::set<std::string_view> buses;
-};
 
 /**
  * Ключ для мапы с расстояниями между остановками
@@ -38,22 +30,6 @@ struct SDKHasher {
   }
 };
 
-/**
- * Маршрут.
- * Бывает линейным, тогда он идёт так:
- * `S[0] -> S[1] -> ... -> S[n-2] -> S[n-1] -> S[n-2] -> S[1] -> S[0]`
- * где `S` это вектор `stops`.
- *
- * А также бывает кольцевым, тогда он идёт так:
- * `S[0] -> S[1] -> ... -> S[n-2] -> S[n-1] -> S[0]`
- */
-struct Bus {
-  std::string name;
-  RouteType route_type = RouteType::LINEAR;
-  // указатель смотрит на элемент `deque` в транспортном справочнике
-  std::vector<Stop*> stops;
-};
-
 }  // namespace transport_catalogue::detail
 
 class TransportCatalogue {
@@ -64,6 +40,7 @@ class TransportCatalogue {
   void SetDistance(std::string_view from, std::string_view to, size_t distance);
   std::optional<BusStats> GetBusStats(std::string_view bus_name) const;
   std::optional<BusesForStop> GetStopInfo(std::string_view stop_name) const;
+  std::vector<const Bus*> GetBuses() const;
  private:
 
   /**
@@ -71,35 +48,42 @@ class TransportCatalogue {
    * чтобы указатели на элементы коллекции не инвалидировались при добавлении
    * новых элементов.
    */
-  std::deque<detail::Stop> stops_;
+  std::deque<Stop> stops_;
 
   /**
    * мапа <имя остановки> -> <указатель на остановку>
    * `string_view` смотрит на строку в самой структуре остановки
    */
-  std::unordered_map<std::string_view, detail::Stop*> stops_by_name_;
+  std::unordered_map<std::string_view, Stop*> stops_by_name_;
 
   /**
    * коллекция уникальных маршрутов. Важно, чтобы коллекция была `deque`,
    * чтобы указатели на элементы коллекции не инвалидировались при добавлении
    * новых элементов.
    */
-  std::deque<detail::Bus> buses_;
+  std::deque<Bus> buses_;
 
   /**
    * мапа <имя маршрута> -> <указатель на маршрут>
    * `string_view` смотрит на строку в самой структуре маршрута
    */
-  std::unordered_map<std::string_view, const detail::Bus*> buses_by_name_;
+  std::unordered_map<std::string_view, const Bus*> buses_by_name_;
 
   /**
    * мапа с реальным расстоянием между остановками `first` и `second`
    */
   std::unordered_map<detail::StopDisKey, unsigned int, detail::SDKHasher> real_distances_;
 
-  std::pair<double, double> CalcDistance(const detail::Stop *from,
-                                         const detail::Stop *to) const;
-  std::vector<detail::Stop*> ResolveStopNames(
+  /**
+   * мапа с набором маршрутов, проходящих через определённую остановку.
+   * Если через остановку не проходит ни один маршрут, соответствующего
+   * элемента в мапе не будет.
+   */
+  std::unordered_map<const Stop*, BusesForStop> buses_for_stop_;
+
+  std::pair<double, double> CalcDistance(const Stop *from,
+                                         const Stop *to) const;
+  std::vector<const Stop*> ResolveStopNames(
       const std::vector<std::string> &stop_names);
 };
 

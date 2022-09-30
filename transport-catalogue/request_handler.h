@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <optional>
 #include <string>
 #include <utility>
 #include <variant>
@@ -8,12 +9,12 @@
 
 #include "domain.h"
 #include "geo.h"
-
-namespace transport_catalogue {
-class TransportCatalogue;
-} /* namespace transport_catalogue */
+#include "map_renderer.h"
 
 namespace transport_catalogue::request_handler {
+
+using transport_catalogue::map_renderer::RenderSettings;
+using transport_catalogue::map_renderer::MapRenderer;
 
 //TODO: убрать дублирующую структуру из input_reader.h
 /**
@@ -88,6 +89,13 @@ struct StopStatRequest : public BaseStatRequest {
 };
 
 /**
+ * Запрос на получение карты маршрутов в SVG формате.
+ */
+struct MapRequest : public BaseStatRequest {
+
+};
+
+/**
  * Все возможные типы запросов на наполнеие базы транспортного справочника.
  */
 using BaseRequest = std::variant<AddStopCmd, AddBusCmd>;
@@ -95,7 +103,7 @@ using BaseRequest = std::variant<AddStopCmd, AddBusCmd>;
 /**
  * Все возможные типы запросов на получение статистики из транспортного справочника.
  */
-using StatRequest = std::variant<BusStatRequest, StopStatRequest>;
+using StatRequest = std::variant<BusStatRequest, StopStatRequest, MapRequest>;
 
 /**
  * Базовый класс для получения запросов к транспортному справочнику.
@@ -113,6 +121,8 @@ class AbstractBufferingRequestReader {
    * Запросы на получение статистики из транспортного справочника.
    */
   virtual const std::vector<StatRequest>& GetStatRequests() const = 0;
+
+  virtual const std::optional<RenderSettings>& GetRenderSettings() const = 0;
 
  protected:
   // не разрешаем полиморфное владение наследниками этого класса. Незачем
@@ -134,11 +144,18 @@ struct StopStatResponse {
 };
 
 /**
+ * Ответ на запрос на получение карты в SVG формате
+ */
+struct MapResponse {
+  std::string svg_map;
+};
+
+/**
  * Все возможные типы ответов на запросы на получение статистики.
  *
  * `std::monostate` - значит, что сущность, по которой была запрошена статистика, не существует.
  */
-using StatResponse = std::variant<std::monostate, BusStatResponse, StopStatResponse>;
+using StatResponse = std::variant<std::monostate, BusStatResponse, StopStatResponse, MapResponse>;
 
 /**
  * Базовый класс для печати ответов на запросы к транспортному справочнику.
@@ -150,8 +167,20 @@ class AbstractStatResponsePrinter {
   ~AbstractStatResponsePrinter() = default;
 };
 
-void ProcessRequests(TransportCatalogue &transport_catalogue,
-                     const AbstractBufferingRequestReader &request_reader,
-                     AbstractStatResponsePrinter &stat_response_printer);
+class BufferingRequestHandler {
+ public:
+  BufferingRequestHandler(TransportCatalogue &transport_catalogue,
+                          const AbstractBufferingRequestReader &request_reader)
+      :
+      transport_catalogue_(transport_catalogue),
+      request_reader_(request_reader) {
+  }
+  void ProcessRequests(AbstractStatResponsePrinter &stat_response_printer);
+  void RenderMap(MapRenderer&);
+
+ private:
+  TransportCatalogue &transport_catalogue_;
+  const AbstractBufferingRequestReader &request_reader_;
+};
 
 }  // namespace transport_catalogue::request_handler

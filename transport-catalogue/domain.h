@@ -2,13 +2,38 @@
 
 #include <stddef.h>
 #include <set>
+#include <string>
 #include <string_view>
+#include <vector>
+
+#include "geo.h"
 
 namespace transport_catalogue {
 
 enum RouteType {
   LINEAR,
   CIRCULAR,
+};
+
+struct Stop {
+  std::string name;
+  geo::Coordinates coords;
+};
+
+/**
+ * Маршрут.
+ * Бывает линейным, тогда он идёт так:
+ * `S[0] -> S[1] -> ... -> S[n-2] -> S[n-1] -> S[n-2] -> S[1] -> S[0]`
+ * где `S` это вектор `stops`.
+ *
+ * А также бывает кольцевым, тогда он идёт так:
+ * `S[0] -> S[1] -> ... -> S[n-2] -> S[n-1] -> S[0]`
+ */
+struct Bus {
+  std::string name;
+  RouteType route_type = RouteType::LINEAR;
+  // указатель смотрит на элемент `deque` в транспортном справочнике
+  std::vector<const Stop*> stops;
 };
 
 /**

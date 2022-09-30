@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 
+#include "../transport-catalogue/geo.h"
 #include "test_framework.h"
 
 using namespace std;
@@ -185,6 +186,30 @@ void TestGetStopInfo() {
   }
 }
 
+void TestGetBuses() {
+  TransportCatalogue tc;
+
+  tc.AddStop("A"s, { 1, 1 });
+  tc.AddStop("B"s, { 1, 1 });
+  tc.AddStop("C"s, { 1, 1 });
+  tc.AddStop("D"s, { 1, 1 });
+  tc.AddStop("E"s, { 1, 1 });
+  tc.AddBus("Bus3"s, RouteType::LINEAR, { "C"s, "D"s });
+  tc.AddBus("Bus1"s, RouteType::LINEAR, { "A"s, "B"s, "A"s });
+  tc.AddBus("Bus2"s, RouteType::LINEAR, { "D"s, "C"s, "B"s, "B"s });
+  tc.AddBus("Bus4"s, RouteType::CIRCULAR, { "D"s, "C"s, "B"s, "D"s });
+
+  auto buses = tc.GetBuses();
+  ASSERT_EQUAL(buses.size(), 4u);
+  ASSERT_EQUAL(buses[0]->name, "Bus3"s);
+  ASSERT_EQUAL(buses[2]->name, "Bus2"s);
+  ASSERT_EQUAL(buses[2]->stops.size(), 4u);
+  ASSERT_EQUAL(buses[2]->stops[3]->name, "B"s);
+  ASSERT_EQUAL(buses[3]->name, "Bus4"s);
+  ASSERT_EQUAL(buses[3]->stops.size(), 3u);
+  ASSERT_EQUAL(buses[3]->stops[2]->name, "B"s);
+}
+
 }  // namespace transport_catalogue::tests
 
 void TestTransportCatalogue(TestRunner &tr) {
@@ -195,4 +220,5 @@ void TestTransportCatalogue(TestRunner &tr) {
   RUN_TEST(tr, TestSetDistance);
   RUN_TEST(tr, TestGetBusStats);
   RUN_TEST(tr, TestGetStopInfo);
+  RUN_TEST(tr, TestGetBuses);
 }

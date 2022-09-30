@@ -8,6 +8,7 @@
 
 #include "../transport-catalogue/domain.h"
 #include "../transport-catalogue/geo.h"
+#include "../transport-catalogue/svg.h"
 #include "test_framework.h"
 
 using namespace std;
@@ -134,6 +135,61 @@ void TestBusStatRequestParser() {
   ASSERT_EQUAL(req.name, "14"s);
 }
 
+void TestRenderSettings() {
+  {
+    string render_settings_json =
+        R"({
+           "width": 1200.0,
+           "height": 1200.1,
+
+           "padding": 50.0,
+
+           "line_width": 14.0,
+           "stop_radius": 5.0,
+
+           "bus_label_font_size": 20,
+           "bus_label_offset": [7.0, 15.0],
+
+           "stop_label_font_size": 21,
+           "stop_label_offset": [7.1, -3.1],
+
+           "underlayer_color": [255, 255, 255, 0.85],
+           "underlayer_width": 3.0,
+
+           "color_palette": [
+             "green",
+             [255, 160, 0],
+             "red"
+           ]
+         })"s;
+    istringstream sin {
+        R"({"base_requests":[],"stat_requests":[],"render_settings":)"s
+            + render_settings_json + R"(})"s };
+    BufferingRequestReader reader { sin };
+    ASSERT(reader.GetRenderSettings());
+    const auto &rs = *reader.GetRenderSettings();
+    ASSERT_SOFT_EQUAL(rs.width, 1200.0);
+    ASSERT_SOFT_EQUAL(rs.height, 1200.1);
+    ASSERT_SOFT_EQUAL(rs.padding, 50.0);
+    ASSERT_SOFT_EQUAL(rs.line_width, 14.0);
+    ASSERT_SOFT_EQUAL(rs.stop_radius, 5.0);
+    ASSERT_EQUAL(rs.bus_label_font_size, 20u);
+    ASSERT_EQUAL(rs.bus_label_offset, (svg::Point { 7.0, 15.0 }));
+    ASSERT_EQUAL(rs.stop_label_font_size, 21u);
+    ASSERT_EQUAL(rs.stop_label_offset, (svg::Point { 7.1, -3.1 }));
+    ASSERT_EQUAL(rs.underlayer_color, (svg::Color { svg::Rgba { 255, 255, 255,
+        0.85 } }));
+    ASSERT_SOFT_EQUAL(rs.underlayer_width, 3.0);
+    ASSERT_EQUAL(rs.color_palette, (vector<svg::Color> { "green"s, svg::Rgb {
+        255, 160, 0 }, "red"s }));
+  }
+  {
+    istringstream sin { R"({"base_requests":[],"stat_requests":[]})"s };
+    BufferingRequestReader reader { sin };
+    ASSERT(!reader.GetRenderSettings().has_value());
+  }
+}
+
 void TestBusStatResponsePrinter() {
   ostringstream sout;
 
@@ -181,6 +237,7 @@ void TestJSONReader(TestRunner &tr) {
   RUN_TEST(tr, TestBusParser);
   RUN_TEST(tr, TestStopStatRequestParser);
   RUN_TEST(tr, TestBusStatRequestParser);
+  RUN_TEST(tr, TestRenderSettings);
 
   RUN_TEST(tr, TestBusStatResponsePrinter);
   RUN_TEST(tr, TestStopStatResponsePrinter);

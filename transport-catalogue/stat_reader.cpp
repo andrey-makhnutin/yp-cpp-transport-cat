@@ -6,6 +6,8 @@
 #include <set>
 #include <string>
 
+#include "transport_catalogue.h"
+
 using namespace std;
 
 namespace transport_catalogue::stat_reader {
