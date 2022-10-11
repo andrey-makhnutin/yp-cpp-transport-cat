@@ -27,6 +27,7 @@ class ParsingError : public std::runtime_error {
  * Тип элемента определяется методами `Is*`, а значения - методами `As*`.
  */
 class Node {
+  using variant_t = std::variant<int, double, bool, std::string, std::nullptr_t, Array, Dict>;
  public:
   Node() = default;
   Node(int);
@@ -59,8 +60,8 @@ class Node {
 
   void Print(std::ostream&) const;
  private:
-  std::variant<int, double, bool, std::string, std::nullptr_t, Array, Dict> value_ =
-      nullptr;
+  // не могу унаследоваться от std::variant, не получается завести это под gcc 9.4
+  variant_t value_ = nullptr;
 };
 
 class Document {
