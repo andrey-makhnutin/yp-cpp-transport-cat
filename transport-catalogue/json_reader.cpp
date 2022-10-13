@@ -21,7 +21,7 @@ namespace detail {
 
 using namespace transport_catalogue::request_handler;
 
-AddStopCmd ParseAddStopCmd(const json::Dict &request) {
+AddStopCmd ParseStopCmd(const json::Dict &request) {
   vector<AddStopCmd::Distance> distances;
 
   for (const auto& [stop_name, node] : request.at("road_distances"s).AsMap()) {
@@ -37,7 +37,7 @@ AddStopCmd ParseAddStopCmd(const json::Dict &request) {
   };
 }
 
-AddBusCmd ParseAddBusCmd(const json::Dict &request) {
+AddBusCmd ParseBusCmd(const json::Dict &request) {
   vector<string> stop_names;
 
   for (const auto &node : request.at("stops"s).AsArray()) {
@@ -59,9 +59,9 @@ vector<BaseRequest> ParseBaseRequests(const json::Array &base_requests) {
     const auto &type = request.at("type"s).AsString();
 
     if (type == "Stop"s) {
-      result.emplace_back(ParseAddStopCmd(request));
+      result.emplace_back(ParseStopCmd(request));
     } else if (type == "Bus"s) {
-      result.emplace_back(ParseAddBusCmd(request));
+      result.emplace_back(ParseBusCmd(request));
     } else {
       throw invalid_argument("Unknown base request with type '"s + type + "'"s);
     }

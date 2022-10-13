@@ -213,8 +213,8 @@ void RenderBusLabels(SvgRenderContext &ctx, const Bus *bus,
  * и перебирается в цикле.
  */
 template<class BusRenderer>
-void ForEachBus(SvgRenderContext &ctx, const vector<const Bus*> &buses,
-                BusRenderer fn) {
+void DoForEachBus(SvgRenderContext &ctx, const vector<const Bus*> &buses,
+                  BusRenderer fn) {
   size_t color_index = 0;
   for (const Bus *bus : buses) {
     if (bus->stops.empty()) {
@@ -230,8 +230,8 @@ void ForEachBus(SvgRenderContext &ctx, const vector<const Bus*> &buses,
  * Отрисовывает маршруты на SVG карте.
  */
 void RenderBuses(SvgRenderContext &ctx, const vector<const Bus*> &buses) {
-  ForEachBus(ctx, buses, RenderRoute);
-  ForEachBus(ctx, buses, RenderBusLabels);
+  DoForEachBus(ctx, buses, RenderRoute);
+  DoForEachBus(ctx, buses, RenderBusLabels);
 }
 
 /**
