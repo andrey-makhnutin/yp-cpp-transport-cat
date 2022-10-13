@@ -26,18 +26,16 @@ class ParsingError : public std::runtime_error {
  * Элемент JSON. Может хранить данные разных типов.
  * Тип элемента определяется методами `Is*`, а значения - методами `As*`.
  */
-class Node {
-  using variant_t = std::variant<int, double, bool, std::string, std::nullptr_t, Array, Dict>;
+class Node : private std::variant<int, double, bool, std::string,
+    std::nullptr_t, Array, Dict> {
+  using variant::variant;
+  using Value = variant;
  public:
-  Node() = default;
-  Node(int);
-  Node(double);
-  Node(bool);
-  Node(std::string);
-  Node(const char*);
-  Node(nullptr_t);
-  Node(Array);
-  Node(Dict);
+
+  // Вообще мы привезли все конструкторы из `variant`,
+  // но сверху ещё определяем явный конструктор для C-строк, для удобства.
+  // Иначе `Node("hello")` неявно превратится в элемент целочисленного типа.
+  explicit Node(const char*);
 
   bool IsInt() const;
   bool IsDouble() const;
@@ -59,9 +57,6 @@ class Node {
   bool operator!=(const Node &other) const;
 
   void Print(std::ostream&) const;
- private:
-  // не могу унаследоваться от std::variant, не получается завести это под gcc 9.4
-  variant_t value_ = nullptr;
 };
 
 class Document {
