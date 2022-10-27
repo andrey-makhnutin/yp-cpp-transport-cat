@@ -57,37 +57,23 @@ void TestArray() {
 
 void TestInvalidUsage() {
   ASSERT_THROWS(json::Builder { }.Key("test"s), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartArray().Key("test"s), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartDict().Key("test"s).Key("test2"s),
-                logic_error);
   ASSERT_THROWS(json::Builder { }.Value(123).Key("test"s), logic_error);
 
   ASSERT_THROWS(json::Builder { }.Value(123).Value(123), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartDict().Value(123), logic_error);
-  ASSERT_THROWS(
-      json::Builder { }.StartDict().Key("test"s).Value(1234).Value(123),
-      logic_error);
 
   ASSERT_THROWS(json::Builder { }.Value(123).StartDict(), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartDict().StartDict(), logic_error);
 
   ASSERT_THROWS(json::Builder { }.EndDict(), logic_error);
   ASSERT_THROWS(json::Builder { }.Value(123).EndDict(), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartArray().EndDict(), logic_error);
 
   ASSERT_THROWS(json::Builder { }.Value(123).StartArray(), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartDict().StartArray(), logic_error);
 
   ASSERT_THROWS(json::Builder { }.EndArray(), logic_error);
   ASSERT_THROWS(json::Builder { }.Value(123).EndArray(), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartDict().EndArray(), logic_error);
 
   ASSERT_THROWS(json::Builder { }.Build(), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartArray().Build(), logic_error);
   ASSERT_THROWS(json::Builder { }.StartArray().StartArray().EndArray().Build(),
                 logic_error);
-  ASSERT_THROWS(json::Builder { }.StartDict().Build(), logic_error);
-  ASSERT_THROWS(json::Builder { }.StartDict().Key("test"s).Build(), logic_error);
 }
 
 }  // namespace json::tests

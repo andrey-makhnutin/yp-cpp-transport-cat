@@ -38,16 +38,16 @@ Builder& Builder::Value(Node::Value value) {
   throw logic_error("unexpected value"s);
 }
 
-Builder& Builder::StartDict() {
+Builder::DictKeyPart Builder::StartDict() {
   if (finished_) {
     throw logic_error("node is finished"s);
   }
   if (expect_key_) {
-    throw logic_error("expected key"s);
+    throw logic_error("expected key, start of dict found"s);
   }
   stack_.push_back(Dict { });
   expect_key_ = true;
-  return *this;
+  return {*this};
 }
 
 Builder& Builder::EndDict() {
@@ -58,7 +58,7 @@ Builder& Builder::EndDict() {
     throw logic_error("trying to end a non-dict"s);
   }
   if (!expect_key_) {
-    throw logic_error("expected key or end of dict"s);
+    throw logic_error("expected a value, end of dict found"s);
   }
   expect_key_ = false;
   auto val = move(stack_.back());
@@ -66,7 +66,7 @@ Builder& Builder::EndDict() {
   return Value(move(val.GetValue()));
 }
 
-Builder& Builder::StartArray() {
+Builder::ArrayPart Builder::StartArray() {
   if (finished_) {
     throw logic_error("node is finished"s);
   }
@@ -74,7 +74,7 @@ Builder& Builder::StartArray() {
     throw logic_error("expected key"s);
   }
   stack_.push_back(Array { });
-  return *this;
+  return {*this};
 }
 
 Builder& Builder::EndArray() {
@@ -96,6 +96,51 @@ Node Builder::Build() {
   auto val = move(stack_.back());
   stack_.pop_back();
   return val;
+}
+
+Builder::DictValuePart Builder::DictKeyPart::Key(std::string k) {
+  builder_.Key(move(k));
+  return {builder_};
+}
+
+Builder& Builder::DictKeyPart::EndDict() {
+  builder_.EndDict();
+  return builder_;
+}
+
+Builder::DictKeyPart Builder::DictValuePart::Value(Node::Value value) {
+  builder_.Value(move(value));
+  return {builder_};
+}
+
+Builder::DictKeyPart Builder::DictValuePart::StartDict() {
+  builder_.StartDict();
+  return {builder_};
+}
+
+Builder::ArrayPart Builder::DictValuePart::StartArray() {
+  builder_.StartArray();
+  return {builder_};
+}
+
+Builder::ArrayPart& Builder::ArrayPart::Value(Node::Value value) {
+  builder_.Value(move(value));
+  return *this;
+}
+
+Builder::DictKeyPart Builder::ArrayPart::StartDict() {
+  builder_.StartDict();
+  return {builder_};
+}
+
+Builder::ArrayPart Builder::ArrayPart::StartArray() {
+  builder_.StartArray();
+  return {builder_};
+}
+
+Builder& Builder::ArrayPart::EndArray() {
+  builder_.EndArray();
+  return builder_;
 }
 
 }  // namespace json
