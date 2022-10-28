@@ -1,6 +1,7 @@
 #include "../transport-catalogue/json_builder.h"
 #include "json_builder.h"
 
+#include <sstream>
 #include <stdexcept>
 
 #include "test_framework.h"
@@ -9,15 +10,22 @@ using namespace std;
 
 namespace json::tests {
 
+#define ASSERT_JSON_EQUAL(a, b) { \
+  stringstream sout;              \
+  json::Node node = (a);          \
+  node.Print(sout);               \
+  ASSERT_EQUAL(sout.str(), (b))   \
+}
+
 void TestPrimitives() {
-  ASSERT_EQUAL(json::Builder { }.Value(123).Build(), Node { 123 });
-  ASSERT_EQUAL(json::Builder { }.Value(1.23).Build(), Node { 1.23 });
-  ASSERT_EQUAL(json::Builder { }.Value(true).Build(), Node { true });
-  ASSERT_EQUAL(json::Builder { }.Value("hello"s).Build(), Node { "hello"s });
+  ASSERT_JSON_EQUAL(json::Builder { }.Value(123).Build(), "123"s);
+  ASSERT_JSON_EQUAL(json::Builder { }.Value(1.23).Build(), "1.23"s);
+  ASSERT_JSON_EQUAL(json::Builder { }.Value(true).Build(), "true"s);
+  ASSERT_JSON_EQUAL(json::Builder { }.Value("hello"s).Build(), R"("hello")"s);
 }
 
 void TestDict() {
-  ASSERT_EQUAL(
+  ASSERT_JSON_EQUAL(
 //@formatter:off
       json::Builder {}
         .StartDict()
@@ -25,42 +33,42 @@ void TestDict() {
         .EndDict()
       .Build(),
 //@formatter:on
-      (Dict { {"test"s, 123}}));
-  ASSERT_EQUAL(
+      R"({"test":123})"s);
+  ASSERT_JSON_EQUAL(
 //@formatter:off
       json::Builder { }.StartDict().Key("test"s).StartArray().Value(123)
           .EndArray().EndDict().Build(),
 //@formatter:on
-      (Dict { { "test"s, Array { 123 } } }));
-  ASSERT_EQUAL(
+      R"({"test":[123]})"s);
+  ASSERT_JSON_EQUAL(
       json::Builder { }.StartDict().Key("test"s).StartDict().Key("test2"s).Value(
           124).EndDict().EndDict().Build(),
-      (Dict { { "test"s, Dict { { "test2"s, 124 } } } }));
+      R"({"test":{"test2":124}})"s);
 }
 
 void TestArray() {
-  ASSERT_EQUAL(json::Builder { }.StartArray().Value(123).EndArray().Build(),
-               (Array { 123 }));
-  ASSERT_EQUAL(
+  ASSERT_JSON_EQUAL(
+      json::Builder { }.StartArray().Value(123).EndArray().Build(), R"([123])"s);
+  ASSERT_JSON_EQUAL(
       json::Builder { }.StartArray().StartArray().Value(123).EndArray().EndArray()
           .Build(),
-      (Array { Array { 123 } }));
-  ASSERT_EQUAL(
+      R"([[123]])"s);
+  ASSERT_JSON_EQUAL(
       json::Builder { }.StartArray().StartArray().Value(123).EndArray().Value(
           124).EndArray().Build(),
-      (Array { Array { 123 }, 124 }));
-  ASSERT_EQUAL(
+      R"([[123],124])"s);
+  ASSERT_JSON_EQUAL(
       json::Builder { }.StartArray().StartArray().Value(123).EndArray().Value(
           124).StartDict().Key("test"s).Value(125).EndDict().EndArray().Build(),
-      (Array { Array { 123 }, 124, Dict { { "test"s, 125 } } }));
-  ASSERT_EQUAL(
+      R"([[123],124,{"test":125}])"s);
+  ASSERT_JSON_EQUAL(
       json::Builder { }.StartArray().Value(124).StartDict().Key("test"s).Value(
           125).EndDict().EndArray().Build(),
-      (Array { 124, Dict { { "test"s, 125 } } }));
-  ASSERT_EQUAL(
+      R"([124,{"test":125}])"s);
+  ASSERT_JSON_EQUAL(
       json::Builder { }.StartArray().StartDict().Key("test"s).Value(125).EndDict()
           .EndArray().Build(),
-      (Array { Dict { { "test"s, 125 } } }));
+      R"([{"test":125}])"s);
 }
 
 void TestInvalidUsage() {
