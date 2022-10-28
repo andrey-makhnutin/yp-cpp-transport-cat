@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -7,48 +8,18 @@
 
 namespace json {
 
-class DictBuilder;
-class ArrayBuilder;
+class DictKeyPart;
+class DictValuePart;
+class ArrayPart;
 
 class Builder {
- private:
-  class PartBuilder {
-   private:
-    PartBuilder(Builder &builder)
-        :
-        builder_(builder) {
-    }
-    Builder &builder_;
-
-    friend Builder;
-  };
  public:
-  class DictValuePart;
-  class ArrayPart;
+  Builder() = default;
+  Builder(Builder &&other);
 
-  class DictKeyPart : private PartBuilder {
-    using PartBuilder::PartBuilder;
-   public:
-    DictValuePart Key(std::string);
-    Builder& EndDict();
-  };
-
-  class DictValuePart : private PartBuilder {
-    using PartBuilder::PartBuilder;
-   public:
-    DictKeyPart Value(Node::Value);
-    DictKeyPart StartDict();
-    ArrayPart StartArray();
-  };
-
-  class ArrayPart : private PartBuilder {
-    using PartBuilder::PartBuilder;
-   public:
-    ArrayPart& Value(Node::Value);
-    DictKeyPart StartDict();
-    ArrayPart StartArray();
-    Builder& EndArray();
-  };
+  Builder(const Builder&) = delete;
+  Builder& operator=(const Builder&) = delete;
+  Builder& operator=(Builder&&) = delete;
 
   Builder& Key(std::string);
   Builder& Value(Node::Value);
@@ -57,11 +28,68 @@ class Builder {
   ArrayPart StartArray();
   Builder& EndArray();
   Node Build();
+
  private:
   std::vector<Node> stack_;
   bool expect_key_ = false;
   bool finished_ = false;
   std::vector<std::string> key_stack_;
+  bool moved_out_of_ = false;
+};
+
+class PartBuilder {
+ protected:
+  PartBuilder(Builder &&builder)
+      :
+      builder_(std::move(builder)) {
+  }
+  Builder builder_;
+
+  friend Builder;
+  friend DictKeyPart;
+  friend DictValuePart;
+};
+
+class DictKeyPart : private PartBuilder {
+  using PartBuilder::PartBuilder;
+ public:
+  DictKeyPart(DictKeyPart&&) = default;
+
+  DictKeyPart(const DictKeyPart&) = delete;
+  DictKeyPart& operator=(const DictKeyPart&) = delete;
+  DictKeyPart& operator=(DictKeyPart&&) = delete;
+
+  DictValuePart Key(std::string);
+  Builder EndDict();
+};
+
+class DictValuePart : private PartBuilder {
+  using PartBuilder::PartBuilder;
+ public:
+  DictValuePart(DictValuePart&&) = default;
+
+  DictValuePart(const DictValuePart&) = delete;
+  DictValuePart& operator=(const DictValuePart&) = delete;
+  DictValuePart& operator=(DictValuePart&&) = delete;
+
+  DictKeyPart Value(Node::Value);
+  DictKeyPart StartDict();
+  ArrayPart StartArray();
+};
+
+class ArrayPart : private PartBuilder {
+  using PartBuilder::PartBuilder;
+ public:
+  ArrayPart(ArrayPart&&) = default;
+
+  ArrayPart(const ArrayPart&) = delete;
+  ArrayPart& operator=(const ArrayPart&) = delete;
+  ArrayPart& operator=(ArrayPart&&) = delete;
+
+  ArrayPart& Value(Node::Value);
+  DictKeyPart StartDict();
+  ArrayPart StartArray();
+  Builder EndArray();
 };
 
 }  // namespace json

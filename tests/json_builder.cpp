@@ -53,6 +53,14 @@ void TestArray() {
       json::Builder { }.StartArray().StartArray().Value(123).EndArray().Value(
           124).StartDict().Key("test"s).Value(125).EndDict().EndArray().Build(),
       (Array { Array { 123 }, 124, Dict { { "test"s, 125 } } }));
+  ASSERT_EQUAL(
+      json::Builder { }.StartArray().Value(124).StartDict().Key("test"s).Value(
+          125).EndDict().EndArray().Build(),
+      (Array { 124, Dict { { "test"s, 125 } } }));
+  ASSERT_EQUAL(
+      json::Builder { }.StartArray().StartDict().Key("test"s).Value(125).EndDict()
+          .EndArray().Build(),
+      (Array { Dict { { "test"s, 125 } } }));
 }
 
 void TestInvalidUsage() {
