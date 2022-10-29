@@ -134,10 +134,12 @@ struct ResponseVariantPrinter {
 //@formatter:off
     json::Print(json::Document {
       StartCommonJsonDict()
-          .Key("curvature"s).Value(bus_stats.route_length / bus_stats.crow_route_length)
+          .Key("curvature"s)
+            .Value(bus_stats.route_length / bus_stats.crow_route_length)
           .Key("route_length"s).Value(bus_stats.route_length)
           .Key("stop_count"s).Value(static_cast<int>(bus_stats.stops_count))
-          .Key("unique_stop_count"s).Value(static_cast<int>(bus_stats.unique_stops_count))
+          .Key("unique_stop_count"s)
+            .Value(static_cast<int>(bus_stats.unique_stops_count))
       .EndDict().Build()
     }, out);
 //@formatter:on
@@ -153,6 +155,10 @@ struct ResponseVariantPrinter {
 //@formatter:on
   }
 
+  /**
+   * Возвращает конструктор JSON с открытым словарём, в который уже
+   * добавлены значения, общие для всех ответов.
+   */
   json::DictKeyPart StartCommonJsonDict() {
     return json::Builder { }.StartDict().Key("request_id"s).Value(request_id);
   }
