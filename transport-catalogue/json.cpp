@@ -362,6 +362,11 @@ Node::Node(const char *value)
     Node(string { value }) {
 }
 
+Node::Node(Value &&val)
+    :
+    Value(move(val)) {
+}
+
 bool Node::IsInt() const {
   return holds_alternative<int>(*this);
 }
@@ -438,13 +443,34 @@ const Dict& Node::AsMap() const {
   throw logic_error("not a dict node"s);
 }
 
+Array& Node::AsArray() {
+  if (IsArray()) {
+    return get<Array>(*this);
+  }
+  throw logic_error("not an array node"s);
+}
+
+Dict& Node::AsMap() {
+  if (IsMap()) {
+    return get<Dict>(*this);
+  }
+  throw logic_error("not a dict node"s);
+}
+
 void Node::Print(ostream &output) const {
-  visit(NodePrinter { output }, static_cast<const Node::Value&>(*this));
+  visit(NodePrinter { output }, GetValue());
+}
+
+const Node::Value& Node::GetValue() const {
+  return *this;
+}
+
+Node::Value& Node::GetValue() {
+  return *this;
 }
 
 bool Node::operator==(const Node &other) const {
-  return static_cast<const Node::Value&>(*this)
-      == static_cast<const Node::Value&>(other);
+  return GetValue() == other.GetValue();
 }
 
 bool Node::operator!=(const Node &other) const {
@@ -495,3 +521,8 @@ void Print(const Document &doc, ostream &output) {
 }
 
 }  // namespace json
+
+ostream& operator<<(ostream &out, const json::Node &node) {
+  node.Print(out);
+  return out;
+}

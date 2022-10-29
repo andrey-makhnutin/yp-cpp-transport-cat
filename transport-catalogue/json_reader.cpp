@@ -1,16 +1,14 @@
 #include "json_reader.h"
 
 #include <algorithm>
-#include <iterator>
 #include <map>
-#include <set>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 #include <variant>
 
 #include "domain.h"
 #include "json.h"
+#include "json_builder.h"
 #include "svg.h"
 
 using namespace std;
@@ -114,47 +112,55 @@ struct ResponseVariantPrinter {
   ostream &out;
 
   void operator()(std::monostate) {
-    auto dict = PrepareCommonDict();
-    dict["error_message"s] = "not found"s;
-    json::Print(json::Document { dict }, out);
+//@formatter:off
+    json::Print(json::Document {
+      StartCommonJsonDict()
+          .Key("error_message"s).Value("not found"s)
+      .EndDict().Build()
+    }, out);
+//@formatter:on
   }
 
   void operator()(const StopStatResponse &response) {
-    auto dict = PrepareCommonDict();
-
-    const auto &buses_internal = response.buses_for_stop;
-    json::Array buses;
-    buses.reserve(buses_internal.size());
-    transform(buses_internal.begin(), buses_internal.end(),
-              back_inserter(buses), [](string_view bus_name) {
-                return json::Node { string { bus_name } };
-              });
-
-    dict["buses"s] = move(buses);
-
-    json::Print(json::Document { dict }, out);
+    auto buses = StartCommonJsonDict().Key("buses"s).StartArray();
+    for (const auto &bus_name : response.buses_for_stop) {
+      buses.Value(string { bus_name });
+    }
+    json::Print(json::Document { buses.EndArray().EndDict().Build() }, out);
   }
 
   void operator()(const BusStatResponse &response) {
-    auto dict = PrepareCommonDict();
     const auto &bus_stats = response.bus_stats;
-    dict["curvature"s] = bus_stats.route_length / bus_stats.crow_route_length;
-    dict["route_length"s] = bus_stats.route_length;
-    dict["stop_count"s] = static_cast<int>(bus_stats.stops_count);
-    dict["unique_stop_count"s] = static_cast<int>(bus_stats.unique_stops_count);
-    json::Print(json::Document { dict }, out);
+//@formatter:off
+    json::Print(json::Document {
+      StartCommonJsonDict()
+          .Key("curvature"s)
+            .Value(bus_stats.route_length / bus_stats.crow_route_length)
+          .Key("route_length"s).Value(bus_stats.route_length)
+          .Key("stop_count"s).Value(static_cast<int>(bus_stats.stops_count))
+          .Key("unique_stop_count"s)
+            .Value(static_cast<int>(bus_stats.unique_stops_count))
+      .EndDict().Build()
+    }, out);
+//@formatter:on
   }
 
   void operator()(const MapResponse &response) {
-    auto dict = PrepareCommonDict();
-    dict["map"s] = response.svg_map;
-    json::Print(json::Document { dict }, out);
+//@formatter:off
+    json::Print(json::Document {
+      StartCommonJsonDict()
+          .Key("map"s).Value(response.svg_map)
+      .EndDict().Build()
+    }, out);
+//@formatter:on
   }
 
-  json::Dict PrepareCommonDict() {
-    return {
-      { "request_id"s, request_id}
-    };
+  /**
+   * Возвращает конструктор JSON с открытым словарём, в который уже
+   * добавлены значения, общие для всех ответов.
+   */
+  json::DictKeyPart StartCommonJsonDict() {
+    return json::Builder { }.StartDict().Key("request_id"s).Value(request_id);
   }
 };
 

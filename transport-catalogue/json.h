@@ -29,13 +29,15 @@ class ParsingError : public std::runtime_error {
 class Node : private std::variant<int, double, bool, std::string,
     std::nullptr_t, Array, Dict> {
   using variant::variant;
-  using Value = variant;
  public:
+  using Value = variant;
 
   // Вообще мы привезли все конструкторы из `variant`,
   // но сверху ещё определяем явный конструктор для C-строк, для удобства.
   // Иначе `Node("hello")` неявно превратится в элемент целочисленного типа.
   explicit Node(const char*);
+
+  explicit Node(Value &&val);
 
   bool IsInt() const;
   bool IsDouble() const;
@@ -53,10 +55,16 @@ class Node : private std::variant<int, double, bool, std::string,
   const Array& AsArray() const;
   const Dict& AsMap() const;
 
+  Array& AsArray();
+  Dict& AsMap();
+
   bool operator==(const Node &other) const;
   bool operator!=(const Node &other) const;
 
   void Print(std::ostream&) const;
+
+  const Value& GetValue() const;
+  Value& GetValue();
 };
 
 class Document {
@@ -76,3 +84,5 @@ Document Load(std::istream &input);
 void Print(const Document &doc, std::ostream &output);
 
 }  // namespace json
+
+std::ostream& operator<<(std::ostream&, const json::Node&);

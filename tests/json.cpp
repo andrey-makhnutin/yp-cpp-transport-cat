@@ -8,8 +8,6 @@
 
 using namespace std;
 
-ostream& operator<<(ostream&, const json::Node&);
-
 namespace json::tests {
 
 Document ParseJSON(const string &str) {
@@ -444,10 +442,6 @@ void TestParsingErrors() {
 }
 
 }  // namespace json::tests
-
-ostream& operator<<(ostream&, const json::Node&) {
-  throw runtime_error("not implemented"s);
-}
 
 void TestJSON(TestRunner &tr) {
   using namespace json::tests;
