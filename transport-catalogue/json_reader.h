@@ -6,6 +6,7 @@
 
 #include "map_renderer.h"
 #include "request_handler.h"
+#include "transport_router.h"
 
 namespace transport_catalogue::json_reader {
 
@@ -16,6 +17,7 @@ using transport_catalogue::map_renderer::RenderSettings;
 
 using transport_catalogue::request_handler::AbstractStatResponsePrinter;
 using transport_catalogue::request_handler::StatResponse;
+using transport_catalogue::router::RouterSettings;
 
 /**
  * Читает запросы к транспортному справочнику в JSON формате из символьного потока.
@@ -137,10 +139,17 @@ class BufferingRequestReader final : public AbstractBufferingRequestReader {
       override {
     return render_settings_;
   }
+
+  virtual const std::optional<RouterSettings>& GetRouterSettings() const
+      override {
+    return router_settings_;
+  }
+
  private:
   std::vector<BaseRequest> base_requests_;
   std::vector<StatRequest> stat_requests_;
   std::optional<RenderSettings> render_settings_;
+  std::optional<RouterSettings> router_settings_;
 
   void Parse(std::istream&);
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stddef.h>
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <utility>
@@ -10,11 +10,13 @@
 #include "domain.h"
 #include "geo.h"
 #include "map_renderer.h"
+#include "transport_router.h"
 
 namespace transport_catalogue::request_handler {
 
 using transport_catalogue::map_renderer::RenderSettings;
 using transport_catalogue::map_renderer::MapRenderer;
+using transport_catalogue::router::RouterSettings;
 
 //TODO: убрать дублирующую структуру из input_reader.h
 /**
@@ -95,6 +97,11 @@ struct MapRequest : public BaseStatRequest {
 
 };
 
+struct RouteRequest : public BaseStatRequest {
+  std::string from;
+  std::string to;
+};
+
 /**
  * Все возможные типы запросов на наполнеие базы транспортного справочника.
  */
@@ -103,7 +110,7 @@ using BaseRequest = std::variant<AddStopCmd, AddBusCmd>;
 /**
  * Все возможные типы запросов на получение статистики из транспортного справочника.
  */
-using StatRequest = std::variant<BusStatRequest, StopStatRequest, MapRequest>;
+using StatRequest = std::variant<BusStatRequest, StopStatRequest, MapRequest, RouteRequest>;
 
 /**
  * Базовый класс для получения запросов к транспортному справочнику.
@@ -123,6 +130,8 @@ class AbstractBufferingRequestReader {
   virtual const std::vector<StatRequest>& GetStatRequests() const = 0;
 
   virtual const std::optional<RenderSettings>& GetRenderSettings() const = 0;
+
+  virtual const std::optional<RouterSettings>& GetRouterSettings() const = 0;
 
  protected:
   // не разрешаем полиморфное владение наследниками этого класса. Незачем
@@ -155,7 +164,8 @@ struct MapResponse {
  *
  * `std::monostate` - значит, что сущность, по которой была запрошена статистика, не существует.
  */
-using StatResponse = std::variant<std::monostate, BusStatResponse, StopStatResponse, MapResponse>;
+using StatResponse = std::variant<std::monostate, BusStatResponse,
+StopStatResponse, MapResponse, router::RouteResult>;
 
 /**
  * Базовый класс для печати ответов на запросы к транспортному справочнику.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stddef.h>
+#include <cstddef>
 #include <deque>
 #include <optional>
 #include <string>
@@ -41,6 +41,8 @@ class TransportCatalogue {
   std::optional<BusStats> GetBusStats(std::string_view bus_name) const;
   std::optional<BusesForStop> GetStopInfo(std::string_view stop_name) const;
   std::vector<const Bus*> GetBuses() const;
+  std::vector<const Stop*> GetStops() const;
+  double GetRealDistance(const Stop *from, const Stop *to) const;
  private:
 
   /**

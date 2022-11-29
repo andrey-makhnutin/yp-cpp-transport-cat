@@ -17,14 +17,17 @@ struct TestRequestReader : public AbstractBufferingRequestReader {
   vector<BaseRequest> base_requests;
   vector<StatRequest> stat_requests;
   optional<RenderSettings> render_settings;
+  optional<RouterSettings> router_settings;
 
   TestRequestReader(vector<BaseRequest> &&_base_requests,
                     vector<StatRequest> &&_stat_requests,
-                    optional<RenderSettings> &&_render_settings = nullopt)
+                    optional<RenderSettings> &&_render_settings = nullopt,
+                    optional<RouterSettings> &&_router_settings = nullopt)
       :
       base_requests(move(_base_requests)),
       stat_requests(move(_stat_requests)),
-      render_settings(move(_render_settings)) {
+      render_settings(move(_render_settings)),
+      router_settings(move(_router_settings)) {
   }
 
   virtual const vector<BaseRequest>& GetBaseRequests() const override {
@@ -36,6 +39,9 @@ struct TestRequestReader : public AbstractBufferingRequestReader {
   virtual const optional<RenderSettings>& GetRenderSettings() const override {
     return render_settings;
   }
+  virtual const optional<RouterSettings>& GetRouterSettings() const override {
+      return router_settings;
+    }
 };
 
 struct TestResponsePrinter : public AbstractStatResponsePrinter {
@@ -99,7 +105,9 @@ void TestProcessRequests() {
     ASSERT_EQUAL(responses[2].first, 3);
     ASSERT(holds_alternative<MapResponse>(responses[2].second));
     const auto &response = get<MapResponse>(responses[2].second);
-    ASSERT_EQUAL(response.svg_map, R"eox(<?xml version="1.0" encoding="UTF-8" ?>
+    ASSERT_EQUAL(
+        response.svg_map,
+        R"eox(<?xml version="1.0" encoding="UTF-8" ?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
   <polyline points="201.751,350 50,50 201.751,350" fill="none" stroke="green" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
   <text x="201.751" y="350" dx="7" dy="15" font-size="20" font-family="Verdana" font-weight="bold" fill="rgba(255,255,255,0.85)" stroke="rgba(255,255,255,0.85)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">114</text>

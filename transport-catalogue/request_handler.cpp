@@ -1,8 +1,10 @@
 #include "request_handler.h"
 
 #include <algorithm>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
+#include <string_view>
 
 #include "transport_catalogue.h"
 
@@ -75,11 +77,13 @@ class StatRequestVariantProcessor {
   StatRequestVariantProcessor(
       TransportCatalogue &transport_catalogue,
       AbstractStatResponsePrinter &stat_response_printer,
-      const optional<map_renderer::RenderSettings> &render_settings)
+      const optional<map_renderer::RenderSettings> &render_settings,
+      const router::Router *router)
       :
       transport_catalogue_(transport_catalogue),
       stat_response_printer_(stat_response_printer),
-      render_settings_(render_settings) {
+      render_settings_(render_settings),
+      router_(router) {
   }
 
   void operator()(const StopStatRequest &request) {
@@ -113,10 +117,25 @@ class StatRequestVariantProcessor {
                                            MapResponse { sout.str() });
     }
   }
+
+  void operator()(const RouteRequest &request) {
+    if (router_ == nullptr) {
+      stat_response_printer_.PrintResponse(request.id, { });
+      return;
+    }
+    auto route = router_->CalcRoute(string_view { request.from }, string_view {
+                                        request.to });
+    if (!route) {
+      stat_response_printer_.PrintResponse(request.id, { });
+      return;
+    }
+    stat_response_printer_.PrintResponse(request.id, *route);
+  }
  private:
   TransportCatalogue &transport_catalogue_;
   AbstractStatResponsePrinter &stat_response_printer_;
   const optional<map_renderer::RenderSettings> &render_settings_;
+  const router::Router *router_ = nullptr;
 
 };
 
@@ -137,10 +156,15 @@ void BufferingRequestHandler::ProcessRequests(
   }
   base_request_processor.FlushStopRequests();
   base_request_processor.FlushBusRequests();
+  unique_ptr<router::Router> router = nullptr;
+  if (request_reader_.GetRouterSettings()) {
+    router = make_unique<router::Router>(*request_reader_.GetRouterSettings(),
+                                         transport_catalogue_);
+  }
 
   detail::StatRequestVariantProcessor stat_request_processor {
       transport_catalogue_, stat_response_printer, request_reader_
-          .GetRenderSettings() };
+          .GetRenderSettings(), router.get() };
   for (const auto &stat_request : request_reader_.GetStatRequests()) {
     visit(stat_request_processor, stat_request);
   }

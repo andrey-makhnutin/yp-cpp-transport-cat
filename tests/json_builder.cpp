@@ -125,6 +125,16 @@ void TestPartial() {
     ASSERT_JSON_EQUAL(arr_builder.EndArray().Build(), "[1,2]"s);
   }
   {
+    auto arr_builder = json::Builder { }.StartArray();
+    arr_builder.Value(
+        json::Builder { }.StartDict().Key("id"s).Value(1).EndDict().Build()
+            .AsMap());
+    arr_builder.Value(
+        json::Builder { }.StartDict().Key("id"s).Value(2).EndDict().Build()
+            .AsMap());
+    ASSERT_JSON_EQUAL(arr_builder.EndArray().Build(), R"([{"id":1},{"id":2}])"s);
+  }
+  {
     auto dict_builder = json::Builder { }.StartDict();
     dict_builder = dict_builder.Key("hello"s).Value(123);
     dict_builder = dict_builder.Key("world"s).Value(124);

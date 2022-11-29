@@ -175,16 +175,16 @@ void TransportCatalogue::SetDistance(std::string_view from, std::string_view to,
                                      size_t distance) {
   auto from_it = stops_by_name_.find(from);
   if (from_it == stops_by_name_.end()) {
-    throw invalid_argument { "unknown stop "s + string { from } };
+    throw invalid_argument { "unknown stop "s + string(from) };
   }
   auto to_it = stops_by_name_.find(to);
   if (to_it == stops_by_name_.end()) {
-    throw invalid_argument { "unknown stop "s + string { to } };
+    throw invalid_argument { "unknown stop "s + string(to) };
   }
   detail::StopDisKey key { from_it->second, to_it->second };
   if (real_distances_.count(key) > 0) {
-    throw invalid_argument { "distance between "s + string { from } + " and "s
-        + string { to } + " has already been set" };
+    throw invalid_argument { "distance between "s + string(from) + " and "s
+        + string(to) + " has already been set" };
   }
   real_distances_.emplace(key, distance);
 }
@@ -198,6 +198,16 @@ vector<const Bus*> TransportCatalogue::GetBuses() const {
   transform(buses_.begin(), buses_.end(), back_inserter(result),
             [](const Bus &bus) {
               return &bus;
+            });
+  return result;
+}
+
+vector<const Stop*> TransportCatalogue::GetStops() const {
+  vector<const Stop*> result;
+  result.reserve(stops_.size());
+  transform(stops_.begin(), stops_.end(), back_inserter(result),
+            [](const Stop &stop) {
+              return &stop;
             });
   return result;
 }
@@ -224,6 +234,11 @@ pair<double, double> TransportCatalogue::CalcDistance(const Stop *from,
     real_dis = it->second;
   }
   return {real_dis, crow_dis};
+}
+
+double TransportCatalogue::GetRealDistance(const Stop *from,
+                                           const Stop *to) const {
+  return CalcDistance(from, to).first;
 }
 
 }  // namespace transport_catalogue

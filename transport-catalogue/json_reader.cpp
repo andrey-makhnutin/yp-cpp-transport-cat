@@ -82,6 +82,14 @@ BusStatRequest ParseBusStatRequest(const json::Dict &request) {
   };
 }
 
+RouteRequest ParseRouteRequest(const json::Dict &request) {
+  return {
+    request.at("id"s).AsInt(),
+    request.at("from"s).AsString(),
+    request.at("to"s).AsString(),
+  };
+}
+
 vector<StatRequest> ParseStatRequests(const json::Array &stat_requests) {
   vector<StatRequest> result;
 
@@ -95,6 +103,8 @@ vector<StatRequest> ParseStatRequests(const json::Array &stat_requests) {
       result.emplace_back(ParseBusStatRequest(request));
     } else if (type == "Map"s) {
       result.emplace_back(MapRequest { request.at("id"s).AsInt() });
+    } else if (type == "Route"s) {
+      result.emplace_back(ParseRouteRequest(request));
     } else {
       throw invalid_argument("Unknown stat request with type '"s + type + "'"s);
     }
@@ -153,6 +163,43 @@ struct ResponseVariantPrinter {
       .EndDict().Build()
     }, out);
 //@formatter:on
+  }
+
+  void operator()(const router::RouteResult &route_result) {
+    auto items = StartCommonJsonDict().Key("items"s).StartArray();
+
+    for (const auto &action : route_result.steps) {
+      items.Value(GetRouteActionJson(action));
+    }
+    json::Print(
+        json::Document { items.EndArray().Key("total_time"s).Value(
+            route_result.time / 60).EndDict().Build() },
+        out);
+  }
+
+  static json::Dict GetRouteActionJson(const router::RouteAction &step) {
+    if (holds_alternative<router::WaitAction>(step)) {
+      const auto &wait_step = get<router::WaitAction>(step);
+      return
+//@formatter:off
+          json::Builder{}.StartDict()
+            .Key("type"s).Value("Wait"s)
+            .Key("stop_name"s).Value(string{wait_step.stop_name})
+            .Key("time"s).Value(wait_step.time / 60)
+          .EndDict().Build().AsMap();
+//@formatter:on
+    } else {
+      const auto &bus_step = get<router::BusAction>(step);
+      return
+//@formatter:off
+          json::Builder{}.StartDict()
+            .Key("type"s).Value("Bus"s)
+            .Key("bus"s).Value(string{bus_step.bus_name})
+            .Key("span_count"s).Value(static_cast<int>(bus_step.stop_count))
+            .Key("time"s).Value(bus_step.time / 60)
+          .EndDict().Build().AsMap();
+//@formatter:on
+    }
   }
 
   /**
@@ -225,6 +272,13 @@ RenderSettings ParseRenderSettings(const json::Dict &rs) {
   return result;
 }
 
+RouterSettings ParseRouterSettings(const json::Dict &map) {
+  RouterSettings result;
+  result.bus_velocity = map.at("bus_velocity"s).AsDouble();
+  result.bus_wait_time = map.at("bus_wait_time"s).AsDouble();
+  return result;
+}
+
 }  // namespace transport_catalogue::json_reader::detail
 
 /**
@@ -241,6 +295,10 @@ void BufferingRequestReader::Parse(istream &sin) {
   if (root.count("render_settings"s) > 0) {
     render_settings_ = detail::ParseRenderSettings(
         root.at("render_settings"s).AsMap());
+  }
+  if (root.count("routing_settings"s) > 0) {
+    router_settings_ = detail::ParseRouterSettings(
+        root.at("routing_settings"s).AsMap());
   }
 }
 
