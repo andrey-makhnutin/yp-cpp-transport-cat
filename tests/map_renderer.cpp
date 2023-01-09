@@ -1,5 +1,4 @@
 #include "../transport-catalogue/map_renderer.h"
-#include "map_renderer.h"
 
 #include <sstream>
 #include <string>
@@ -8,6 +7,7 @@
 #include "../transport-catalogue/domain.h"
 #include "../transport-catalogue/geo.h"
 #include "../transport-catalogue/transport_catalogue.h"
+#include "map_renderer.h"
 #include "test_framework.h"
 
 using namespace std;
@@ -16,16 +16,23 @@ namespace transport_catalogue::map_renderer::tests {
 
 void TestRenderSvgMap() {
   TransportCatalogue tc;
-  tc.AddStop("Rivierskiy most"s, { 43.587795, 39.716901 });
-  tc.AddStop("Morskoy vokzal"s, { 43.581969, 39.719848 });
-  tc.AddStop("Elektroseti"s, { 43.598701, 39.730623 });
-  tc.AddStop("Ulitsa Dokuchaeva"s, { 43.585586, 39.733879 });
-  tc.AddStop("Ulitsa Lizy Chaikinoi"s, { 43.590317, 39.746833 });
-  tc.AddBus("14"s, RouteType::CIRCULAR, vector<string> {
-                "Ulitsa Lizy Chaikinoi"s, "Elektroseti"s, "Ulitsa Dokuchaeva"s,
-                "Ulitsa Lizy Chaikinoi"s, });
-  tc.AddBus("114"s, RouteType::LINEAR, vector<string> { "Morskoy vokzal"s,
-                "Rivierskiy most"s, });
+  tc.AddStop("Rivierskiy most"s, {43.587795, 39.716901});
+  tc.AddStop("Morskoy vokzal"s, {43.581969, 39.719848});
+  tc.AddStop("Elektroseti"s, {43.598701, 39.730623});
+  tc.AddStop("Ulitsa Dokuchaeva"s, {43.585586, 39.733879});
+  tc.AddStop("Ulitsa Lizy Chaikinoi"s, {43.590317, 39.746833});
+  tc.AddBus("14"s, RouteType::CIRCULAR,
+            vector<string>{
+                "Ulitsa Lizy Chaikinoi"s,
+                "Elektroseti"s,
+                "Ulitsa Dokuchaeva"s,
+                "Ulitsa Lizy Chaikinoi"s,
+            });
+  tc.AddBus("114"s, RouteType::LINEAR,
+            vector<string>{
+                "Morskoy vokzal"s,
+                "Rivierskiy most"s,
+            });
 
   RenderSettings rs;
   rs.width = 600;
@@ -34,20 +41,19 @@ void TestRenderSvgMap() {
   rs.stop_radius = 5;
   rs.line_width = 14;
   rs.bus_label_font_size = 20;
-  rs.bus_label_offset = svg::Point { 7, 15 };
+  rs.bus_label_offset = svg::Point{7, 15};
   rs.stop_label_font_size = 20;
-  rs.stop_label_offset = svg::Point { 7, -3 };
-  rs.underlayer_color = svg::Rgba { 255, 255, 255, 0.85 };
+  rs.stop_label_offset = svg::Point{7, -3};
+  rs.underlayer_color = svg::Rgba{255, 255, 255, 0.85};
   rs.underlayer_width = 3;
-  rs.color_palette = vector<svg::Color> { "green"s, svg::Rgb { 255, 160, 0 },
-      "red"s };
+  rs.color_palette =
+      vector<svg::Color>{"green"s, svg::Rgb{255, 160, 0}, "red"s};
 
   ostringstream sout;
   SvgMapRenderer map_renderer(tc, sout);
   map_renderer.RenderMap(rs);
-  ASSERT_EQUAL(
-      sout.str(),
-      R"eox(<?xml version="1.0" encoding="UTF-8" ?>
+  ASSERT_EQUAL(sout.str(),
+               R"eox(<?xml version="1.0" encoding="UTF-8" ?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
   <polyline points="99.2283,329.5 50,232.18 99.2283,329.5" fill="none" stroke="green" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
   <polyline points="550,190.051 279.22,50 333.61,269.08 550,190.051" fill="none" stroke="rgb(255,160,0)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />

@@ -62,6 +62,7 @@ class Router {
          const TransportCatalogue &transport_catalogue);
   std::optional<RouteResult> CalcRoute(std::string_view from,
                                        std::string_view to) const;
+
  private:
   RouterSettings settings_;
   const TransportCatalogue &transport_catalogue_;

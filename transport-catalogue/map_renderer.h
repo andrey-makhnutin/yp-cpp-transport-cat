@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+
 #include <iostream>
 #include <vector>
 
@@ -22,10 +23,10 @@ struct RenderSettings {
   double line_width = 0.0;
   double stop_radius = 0.0;
   size_t bus_label_font_size = 0;
-  svg::Point bus_label_offset = { 0.0, 0.0 };
+  svg::Point bus_label_offset = {0.0, 0.0};
   double stop_label_font_size = 0.0;
-  svg::Point stop_label_offset = { 0.0, 0.0 };
-  svg::Color underlayer_color = { };
+  svg::Point stop_label_offset = {0.0, 0.0};
+  svg::Color underlayer_color = {};
   double underlayer_width = 0.0;
   std::vector<svg::Color> color_palette;
 };
@@ -38,7 +39,8 @@ class MapRenderer {
   /**
    * Отрисовать карту с указанными настройками.
    */
-  virtual void RenderMap(const RenderSettings&) = 0;
+  virtual void RenderMap(const RenderSettings &) = 0;
+
  protected:
   ~MapRenderer() = default;
 };
@@ -50,11 +52,9 @@ class SvgMapRenderer final : public MapRenderer {
  public:
   SvgMapRenderer(const TransportCatalogue &transport_catalogue,
                  std::ostream &out)
-      :
-      transport_catalogue_(transport_catalogue),
-      out_(out) {
-  }
-  virtual void RenderMap(const RenderSettings&) override;
+      : transport_catalogue_(transport_catalogue), out_(out) {}
+  virtual void RenderMap(const RenderSettings &) override;
+
  private:
   const TransportCatalogue &transport_catalogue_;
   std::ostream &out_;

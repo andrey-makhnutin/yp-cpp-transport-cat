@@ -18,10 +18,7 @@ namespace {
  */
 class NodeParser {
  public:
-  NodeParser(istream &input)
-      :
-      input_(input) {
-  }
+  NodeParser(istream &input) : input_(input) {}
 
   /**
    * Парсит элемент JSON.
@@ -58,6 +55,7 @@ class NodeParser {
     // недостижимый код
     return {};
   }
+
  private:
   istream &input_;
 
@@ -89,8 +87,8 @@ class NodeParser {
   Node LoadNumber() {
     string number_str;
 
-    // флажок указывает, было ли число записано как double: значит либо была точка,
-    // либо запись экспонентная
+    // флажок указывает, было ли число записано как double: значит либо была
+    // точка, либо запись экспонентная
     bool double_repr = false;
 
     // читаем из потока все символы, которые могут встретиться в записи числа,
@@ -140,15 +138,16 @@ class NodeParser {
       Fail("error parsing number");
     }
 
-    // если в записи числа встретилась точка или экспонента, то это всегда double
+    // если в записи числа встретилась точка или экспонента, то это всегда
+    // double
     if (double_repr) {
       return number;
     }
 
     // здесь мы можем быть уверены, что точки не было, значит число целое.
     // но если оно не влезает в int, то делаем JSON элемент с типом double
-    if (number > static_cast<double>(numeric_limits<int>::max())
-        || number < static_cast<double>(numeric_limits<int>::min())) {
+    if (number > static_cast<double>(numeric_limits<int>::max()) ||
+        number < static_cast<double>(numeric_limits<int>::min())) {
       return number;
     }
 
@@ -157,7 +156,8 @@ class NodeParser {
   }
 
   /**
-   * Читает строку из потока. Считается, что открывающая двойная кавычка уже прочитана.
+   * Читает строку из потока. Считается, что открывающая двойная кавычка уже
+   * прочитана.
    *
    * Поддерживаются escape-последовательности \r, \n, \t, \\ и \".
    * Последовательности \x?? не поддерживаются.
@@ -194,7 +194,8 @@ class NodeParser {
   }
 
   /**
-   * Читает JSON массив. Считается, что открывающая квадратная скобка уже прочитана.
+   * Читает JSON массив. Считается, что открывающая квадратная скобка уже
+   * прочитана.
    */
   Node LoadArray() {
     Array result;
@@ -226,7 +227,8 @@ class NodeParser {
   }
 
   /**
-   * Читает JSON словарик. Считается, что открывающая фигурная скобка уже прочитана.
+   * Читает JSON словарик. Считается, что открывающая фигурная скобка уже
+   * прочитана.
    */
   Node LoadDict() {
     Dict result;
@@ -282,27 +284,17 @@ class NodeParser {
 };
 
 /**
- * Вспомогательная структура для печати в `ostream` варианта со значением JSON элемента
- * с помощью `visit`.
+ * Вспомогательная структура для печати в `ostream` варианта со значением JSON
+ * элемента с помощью `visit`.
  */
 struct NodePrinter {
   ostream &output_;
 
-  void operator()(int value) {
-    output_ << value;
-  }
-  void operator()(double value) {
-    output_ << value;
-  }
-  void operator()(bool value) {
-    output_ << (value ? "true"sv : "false"sv);
-  }
-  void operator()(const string &value) {
-    PrintString(value);
-  }
-  void operator()(nullptr_t) {
-    output_ << "null"sv;
-  }
+  void operator()(int value) { output_ << value; }
+  void operator()(double value) { output_ << value; }
+  void operator()(bool value) { output_ << (value ? "true"sv : "false"sv); }
+  void operator()(const string &value) { PrintString(value); }
+  void operator()(nullptr_t) { output_ << "null"sv; }
   void operator()(const Array &value) {
     bool first = true;
     output_.put('[');
@@ -318,7 +310,7 @@ struct NodePrinter {
   void operator()(const Dict &value) {
     bool first = true;
     output_.put('{');
-    for (const auto& [key, node] : value) {
+    for (const auto &[key, node] : value) {
       if (!first) {
         output_.put(',');
       }
@@ -357,47 +349,27 @@ struct NodePrinter {
 
 }  // namespace
 
-Node::Node(const char *value)
-    :
-    Node(string { value }) {
-}
+Node::Node(const char *value) : Node(string{value}) {}
 
-Node::Node(Value &&val)
-    :
-    Value(move(val)) {
-}
+Node::Node(Value &&val) : Value(move(val)) {}
 
-bool Node::IsInt() const {
-  return holds_alternative<int>(*this);
-}
+bool Node::IsInt() const { return holds_alternative<int>(*this); }
 
 bool Node::IsDouble() const {
   return holds_alternative<int>(*this) || holds_alternative<double>(*this);
 }
 
-bool Node::IsPureDouble() const {
-  return holds_alternative<double>(*this);
-}
+bool Node::IsPureDouble() const { return holds_alternative<double>(*this); }
 
-bool Node::IsBool() const {
-  return holds_alternative<bool>(*this);
-}
+bool Node::IsBool() const { return holds_alternative<bool>(*this); }
 
-bool Node::IsString() const {
-  return holds_alternative<string>(*this);
-}
+bool Node::IsString() const { return holds_alternative<string>(*this); }
 
-bool Node::IsNull() const {
-  return holds_alternative<nullptr_t>(*this);
-}
+bool Node::IsNull() const { return holds_alternative<nullptr_t>(*this); }
 
-bool Node::IsArray() const {
-  return holds_alternative<Array>(*this);
-}
+bool Node::IsArray() const { return holds_alternative<Array>(*this); }
 
-bool Node::IsMap() const {
-  return holds_alternative<Dict>(*this);
-}
+bool Node::IsMap() const { return holds_alternative<Dict>(*this); }
 
 int Node::AsInt() const {
   if (IsInt()) {
@@ -422,35 +394,35 @@ bool Node::AsBool() const {
   throw logic_error("not a bool node"s);
 }
 
-const string& Node::AsString() const {
+const string &Node::AsString() const {
   if (IsString()) {
     return get<string>(*this);
   }
   throw logic_error("not a string node"s);
 }
 
-const Array& Node::AsArray() const {
+const Array &Node::AsArray() const {
   if (IsArray()) {
     return get<Array>(*this);
   }
   throw logic_error("not an array node"s);
 }
 
-const Dict& Node::AsMap() const {
+const Dict &Node::AsMap() const {
   if (IsMap()) {
     return get<Dict>(*this);
   }
   throw logic_error("not a dict node"s);
 }
 
-Array& Node::AsArray() {
+Array &Node::AsArray() {
   if (IsArray()) {
     return get<Array>(*this);
   }
   throw logic_error("not an array node"s);
 }
 
-Dict& Node::AsMap() {
+Dict &Node::AsMap() {
   if (IsMap()) {
     return get<Dict>(*this);
   }
@@ -458,39 +430,28 @@ Dict& Node::AsMap() {
 }
 
 void Node::Print(ostream &output) const {
-  visit(NodePrinter { output }, GetValue());
+  visit(NodePrinter{output}, GetValue());
 }
 
-const Node::Value& Node::GetValue() const {
-  return *this;
-}
+const Node::Value &Node::GetValue() const { return *this; }
 
-Node::Value& Node::GetValue() {
-  return *this;
-}
+Node::Value &Node::GetValue() { return *this; }
 
 bool Node::operator==(const Node &other) const {
   return GetValue() == other.GetValue();
 }
 
-bool Node::operator!=(const Node &other) const {
-  return !(*this == other);
-}
+bool Node::operator!=(const Node &other) const { return !(*this == other); }
 
-Document::Document(Node root)
-    :
-    root_(move(root)) {
-}
+Document::Document(Node root) : root_(move(root)) {}
 
-const Node& Document::GetRoot() const {
-  return root_;
-}
+const Node &Document::GetRoot() const { return root_; }
 
-bool Document::operator ==(const Document &other) const {
+bool Document::operator==(const Document &other) const {
   return root_ == other.root_;
 }
 
-bool Document::operator !=(const Document &other) const {
+bool Document::operator!=(const Document &other) const {
   return !(*this == other);
 }
 
@@ -502,15 +463,15 @@ bool Document::operator !=(const Document &other) const {
  * а поток помечается флагом `failbit`.
  */
 Document Load(istream &input) {
-  istream::sentry sentry { input };
+  istream::sentry sentry{input};
   if (!sentry) {
     if (input.eof()) {
       throw ParsingError("reached end of stream"s);
     }
     throw ParsingError("input stream is in bad state"s);
   }
-  NodeParser parser { input };
-  return Document { parser.LoadNode() };
+  NodeParser parser{input};
+  return Document{parser.LoadNode()};
 }
 
 /**
@@ -522,7 +483,7 @@ void Print(const Document &doc, ostream &output) {
 
 }  // namespace json
 
-ostream& operator<<(ostream &out, const json::Node &node) {
+ostream &operator<<(ostream &out, const json::Node &node) {
   node.Print(out);
   return out;
 }

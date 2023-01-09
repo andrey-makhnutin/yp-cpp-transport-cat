@@ -1,6 +1,7 @@
 #include "stat_reader.h"
 
 #include <stddef.h>
+
 #include <cassert>
 #include <iomanip>
 #include <set>
@@ -26,7 +27,7 @@ void RTrimStr(string &str) {
   }
 }
 
-}  // namespace transport_catalogue::stat_reader::from_char_stream::detail
+}  // namespace detail
 
 /**
  * Парсит запросы на получение статистики из потока `sin_`,
@@ -58,7 +59,7 @@ void StatsRequestProcessor::ProcessRequests(
   }
 }
 
-}  // namespace transport_catalogue::stat_reader::from_char_stream
+}  // namespace from_char_stream
 
 namespace to_char_stream {
 
@@ -97,6 +98,6 @@ void StatsPrinter::PrintStopInfo(
   sout_ << endl;
 }
 
-}  // namespace transport_catalogue::stat_reader::to_char_stream
+}  // namespace to_char_stream
 
 }  // namespace transport_catalogue::stat_reader

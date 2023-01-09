@@ -27,8 +27,9 @@ class ParsingError : public std::runtime_error {
  * Тип элемента определяется методами `Is*`, а значения - методами `As*`.
  */
 class Node : private std::variant<int, double, bool, std::string,
-    std::nullptr_t, Array, Dict> {
+                                  std::nullptr_t, Array, Dict> {
   using variant::variant;
+
  public:
   using Value = variant;
 
@@ -37,7 +38,7 @@ class Node : private std::variant<int, double, bool, std::string,
   // Иначе `Node("hello")` неявно превратится в элемент целочисленного типа.
   explicit Node(const char*);
 
-  explicit Node(Value &&val);
+  explicit Node(Value&& val);
 
   bool IsInt() const;
   bool IsDouble() const;
@@ -58,8 +59,8 @@ class Node : private std::variant<int, double, bool, std::string,
   Array& AsArray();
   Dict& AsMap();
 
-  bool operator==(const Node &other) const;
-  bool operator!=(const Node &other) const;
+  bool operator==(const Node& other) const;
+  bool operator!=(const Node& other) const;
 
   void Print(std::ostream&) const;
 
@@ -73,15 +74,16 @@ class Document {
 
   const Node& GetRoot() const;
 
-  bool operator==(const Document &other) const;
-  bool operator!=(const Document &other) const;
+  bool operator==(const Document& other) const;
+  bool operator!=(const Document& other) const;
+
  private:
   Node root_;
 };
 
-Document Load(std::istream &input);
+Document Load(std::istream& input);
 
-void Print(const Document &doc, std::ostream &output);
+void Print(const Document& doc, std::ostream& output);
 
 }  // namespace json
 

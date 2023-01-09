@@ -24,8 +24,8 @@ void TransportCatalogue::AddStop(string name, geo::Coordinates coordinates) {
   if (stops_by_name_.count(name) > 0) {
     throw invalid_argument("stop "s + name + " already exists"s);
   }
-  auto &ref = stops_.emplace_back(Stop { move(name), coordinates });
-  stops_by_name_.emplace(string_view { ref.name }, &ref);
+  auto &ref = stops_.emplace_back(Stop{move(name), coordinates});
+  stops_by_name_.emplace(string_view{ref.name}, &ref);
 }
 
 /**
@@ -52,16 +52,16 @@ void TransportCatalogue::AddBus(string name, RouteType route_type,
     throw invalid_argument(
         "first and last stop in circular routes must be the same"s);
   }
-  vector<const Stop*> stops = ResolveStopNames(stop_names);
+  vector<const Stop *> stops = ResolveStopNames(stop_names);
 
-  // знаем (и проверили), что у кольцевых маршрутов последняя остановка совпадает
-  // с первой, поэтому её можно не хранить.
+  // знаем (и проверили), что у кольцевых маршрутов последняя остановка
+  // совпадает с первой, поэтому её можно не хранить.
   if (route_type == RouteType::CIRCULAR) {
     stops.resize(stops.size() - 1);
   }
 
-  const auto &ref = buses_.emplace_back(
-      Bus { move(name), route_type, move(stops) });
+  const auto &ref =
+      buses_.emplace_back(Bus{move(name), route_type, move(stops)});
   buses_by_name_.emplace(ref.name, &ref);
   for (const Stop *stop : ref.stops) {
     auto &buses_for_stop = buses_for_stop_[stop];
@@ -70,14 +70,14 @@ void TransportCatalogue::AddBus(string name, RouteType route_type,
 }
 
 /**
- * Переводит вектор с названиями остановок в вектор с указателями на объект-остановку
- * в справочнике.
+ * Переводит вектор с названиями остановок в вектор с указателями на
+ * объект-остановку в справочнике.
  *
  * Если остановка с таким именем не найдена, кидает `invalid_argument`.
  */
-vector<const Stop*> TransportCatalogue::ResolveStopNames(
+vector<const Stop *> TransportCatalogue::ResolveStopNames(
     const vector<string> &stop_names) {
-  vector<const Stop*> stops;
+  vector<const Stop *> stops;
   stops.reserve(stop_names.size());
   for (const auto &stop_name : stop_names) {
     auto found_it = stops_by_name_.find(stop_name);
@@ -102,8 +102,9 @@ optional<BusStats> TransportCatalogue::GetBusStats(string_view bus_name) const {
   const auto &stops = bus.stops;
 
   // считаем, что одна остановка не может храниться в справочнике дважды,
-  // поэтому одинаковость остановок можно определить по равенству указателей на неё
-  unordered_set<const Stop*> uniq_stops { stops.begin(), stops.end() };
+  // поэтому одинаковость остановок можно определить по равенству указателей на
+  // неё
+  unordered_set<const Stop *> uniq_stops{stops.begin(), stops.end()};
 
   size_t stops_count;
   double route_length = 0;
@@ -134,15 +135,15 @@ optional<BusStats> TransportCatalogue::GetBusStats(string_view bus_name) const {
     case RouteType::CIRCULAR:
       stops_count = stops.size() + 1;
 
-      // для подсчёта длины кольцевого маршрута нужно ещё добавить длину между последней
-      // и первой остановками
+      // для подсчёта длины кольцевого маршрута нужно ещё добавить длину между
+      // последней и первой остановками
       auto [real, crow] = CalcDistance(stops.back(), stops[0]);
       route_length += real;
       crow_route_length += crow;
       break;
   }
-  return BusStats { stops_count, uniq_stops.size(), route_length,
-      crow_route_length };
+  return BusStats{stops_count, uniq_stops.size(), route_length,
+                  crow_route_length};
 }
 
 /**
@@ -160,10 +161,10 @@ std::optional<BusesForStop> TransportCatalogue::GetStopInfo(
   }
   auto buses_it = buses_for_stop_.find(stop_it->second);
 
-  // если элемента в мапе нет, значит через остановку не проходит ни один маршрут,
-  // и в этом случае возвращаем пустое множество.
+  // если элемента в мапе нет, значит через остановку не проходит ни один
+  // маршрут, и в этом случае возвращаем пустое множество.
   if (buses_it == buses_for_stop_.end()) {
-    return BusesForStop { };
+    return BusesForStop{};
   }
   return buses_it->second;
 }
@@ -175,16 +176,16 @@ void TransportCatalogue::SetDistance(std::string_view from, std::string_view to,
                                      size_t distance) {
   auto from_it = stops_by_name_.find(from);
   if (from_it == stops_by_name_.end()) {
-    throw invalid_argument { "unknown stop "s + string(from) };
+    throw invalid_argument{"unknown stop "s + string(from)};
   }
   auto to_it = stops_by_name_.find(to);
   if (to_it == stops_by_name_.end()) {
-    throw invalid_argument { "unknown stop "s + string(to) };
+    throw invalid_argument{"unknown stop "s + string(to)};
   }
-  detail::StopDisKey key { from_it->second, to_it->second };
+  detail::StopDisKey key{from_it->second, to_it->second};
   if (real_distances_.count(key) > 0) {
-    throw invalid_argument { "distance between "s + string(from) + " and "s
-        + string(to) + " has already been set" };
+    throw invalid_argument{"distance between "s + string(from) + " and "s +
+                           string(to) + " has already been set"};
   }
   real_distances_.emplace(key, distance);
 }
@@ -192,23 +193,19 @@ void TransportCatalogue::SetDistance(std::string_view from, std::string_view to,
 /**
  * Возвращает вектор с указателями на все маршруты в справочнике.
  */
-vector<const Bus*> TransportCatalogue::GetBuses() const {
-  vector<const Bus*> result;
+vector<const Bus *> TransportCatalogue::GetBuses() const {
+  vector<const Bus *> result;
   result.reserve(buses_.size());
   transform(buses_.begin(), buses_.end(), back_inserter(result),
-            [](const Bus &bus) {
-              return &bus;
-            });
+            [](const Bus &bus) { return &bus; });
   return result;
 }
 
-vector<const Stop*> TransportCatalogue::GetStops() const {
-  vector<const Stop*> result;
+vector<const Stop *> TransportCatalogue::GetStops() const {
+  vector<const Stop *> result;
   result.reserve(stops_.size());
   transform(stops_.begin(), stops_.end(), back_inserter(result),
-            [](const Stop &stop) {
-              return &stop;
-            });
+            [](const Stop &stop) { return &stop; });
   return result;
 }
 
@@ -226,9 +223,9 @@ pair<double, double> TransportCatalogue::CalcDistance(const Stop *from,
   // as the crow flies
   double crow_dis = geo::ComputeDistance(from->coords, to->coords);
   double real_dis = crow_dis;
-  auto it = real_distances_.find( { from, to });
+  auto it = real_distances_.find({from, to});
   if (it == real_distances_.end()) {
-    it = real_distances_.find( { to, from });
+    it = real_distances_.find({to, from});
   }
   if (it != real_distances_.end()) {
     real_dis = it->second;

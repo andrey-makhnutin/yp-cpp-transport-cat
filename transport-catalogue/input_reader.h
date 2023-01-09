@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+
 #include <istream>
 #include <string>
 #include <string_view>
@@ -37,7 +38,8 @@ struct AddStopCmd {
 
   /**
    * Расстояния до соседних остановок.
-   * Первый элемент пары - название соседней остановки, второй - расстояние в метрах.
+   * Первый элемент пары - название соседней остановки, второй - расстояние в
+   * метрах.
    */
   std::vector<Distance> distances;
 };
@@ -58,7 +60,8 @@ struct AddBusCmd {
    * Список названий остановок в маршруте по порядку.
    * В кольцевом маршруте первая и последняя остановка совпадают.
    *
-   * `string_view` ссылается на строку в родительском парсере, например в `DbFromTextStream`
+   * `string_view` ссылается на строку в родительском парсере, например в
+   * `DbFromTextStream`
    */
   std::vector<std::string> stop_names;
 };
@@ -66,7 +69,8 @@ struct AddBusCmd {
 namespace from_char_stream {
 
 /**
- * Класс-парсер команд на добавление данных в текстовый справочник из символьного потока.
+ * Класс-парсер команд на добавление данных в текстовый справочник из
+ * символьного потока.
  *
  * Формат входных данных таков:
  * ```
@@ -78,7 +82,8 @@ namespace from_char_stream {
  * ```
  * где `N` - число команд на добавление данных.
  *
- * Каждая команда начинается со слова "Stop" или "Bus", которая определяет тип команды.
+ * Каждая команда начинается со слова "Stop" или "Bus", которая определяет тип
+ * команды.
  *
  * Формат команды на добавление остановки такой:
  * `Stop <название остановки>: <широта>, <долгота>, <р1>m to <с1>, ...`
@@ -87,33 +92,28 @@ namespace from_char_stream {
  *
  * Формат команды на добавление маршрута такой:
  * `Bus <название маршрута>: <остановка 1> - <остановка 2> - ...`
- * Если маршрут кольцевой, то название первой и последней остановки должны совпадать,
- * а в качестве разделителя используется символ ">" вместо "-".
+ * Если маршрут кольцевой, то название первой и последней остановки должны
+ * совпадать, а в качестве разделителя используется символ ">" вместо "-".
  */
 class DbReader {
  public:
   /**
    * Парсит команды из символьного потока `sin`.
    */
-  DbReader(std::istream &sin)
-      :
-      sin_(sin) {
-    Parse();
-  }
+  DbReader(std::istream &sin) : sin_(sin) { Parse(); }
 
   /**
    * Список команд на добавление остановки.
    */
-  const std::vector<AddStopCmd>& GetAddStopCmds() const {
+  const std::vector<AddStopCmd> &GetAddStopCmds() const {
     return add_stop_cmds_;
   }
 
   /**
    * Список команд на добавление маршрута.
    */
-  const std::vector<AddBusCmd>& GetAddBusCmds() const {
-    return add_bus_cmds_;
-  }
+  const std::vector<AddBusCmd> &GetAddBusCmds() const { return add_bus_cmds_; }
+
  private:
   void Parse();
 
@@ -128,10 +128,10 @@ std::vector<std::string_view> SplitNoWS(std::string_view line,
                                         std::string_view by);
 std::vector<std::string_view> SplitNoWS(std::string_view line, char by);
 
-}  // namespace transport_catalogue::input_reader::from_char_stream::detail
+}  // namespace detail
 
 void ReadDB(TransportCatalogue &transport_catalogue, std::istream &sin);
 
-}  // namespace transport_catalogue::input_reader::from_char_stream
+}  // namespace from_char_stream
 
 }  // namespace transport_catalogue::input_reader

@@ -91,7 +91,7 @@ class ArrayPart;
 class Builder {
  public:
   Builder() = default;
-  Builder(Builder &&other);
+  Builder(Builder&& other);
   Builder& operator=(Builder&&);
 
   Builder(const Builder&) = delete;
@@ -106,7 +106,6 @@ class Builder {
   Node Build();
 
  private:
-
   // Верхняя нода в стеке - текущий собираемый массив или словарь.
   std::vector<Node> stack_;
 
@@ -127,7 +126,7 @@ class Builder {
   // в другую переменную. После этого конструктором пользоваться нельзя.
   bool moved_out_of_ = false;
 
-  void Swap(Builder &other);
+  void Swap(Builder& other);
 };
 
 /**
@@ -139,10 +138,7 @@ class Builder {
  */
 class PartBuilder {
  protected:
-  PartBuilder(Builder &&builder)
-      :
-      builder_(std::move(builder)) {
-  }
+  PartBuilder(Builder&& builder) : builder_(std::move(builder)) {}
   Builder builder_;
 
   friend Builder;
@@ -156,6 +152,7 @@ class PartBuilder {
  */
 class DictKeyPart : private PartBuilder {
   using PartBuilder::PartBuilder;
+
  public:
   DictKeyPart(DictKeyPart&&) = default;
   DictKeyPart& operator=(DictKeyPart&&) = default;
@@ -174,6 +171,7 @@ class DictKeyPart : private PartBuilder {
  */
 class DictValuePart : private PartBuilder {
   using PartBuilder::PartBuilder;
+
  public:
   DictValuePart(DictValuePart&&) = default;
 
@@ -192,6 +190,7 @@ class DictValuePart : private PartBuilder {
  */
 class ArrayPart : private PartBuilder {
   using PartBuilder::PartBuilder;
+
  public:
   ArrayPart(ArrayPart&&) = default;
   ArrayPart& operator=(ArrayPart&&) = default;

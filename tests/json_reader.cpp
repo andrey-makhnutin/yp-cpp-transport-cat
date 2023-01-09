@@ -1,5 +1,4 @@
 #include "../transport-catalogue/json_reader.h"
-#include "json_reader.h"
 
 #include <algorithm>
 #include <sstream>
@@ -9,6 +8,7 @@
 #include "../transport-catalogue/domain.h"
 #include "../transport-catalogue/geo.h"
 #include "../transport-catalogue/svg.h"
+#include "json_reader.h"
 #include "test_framework.h"
 
 using namespace std;
@@ -28,9 +28,9 @@ void TestStopParser() {
              "Улица Лизы Чайкиной": 4300
            }
          })"s;
-  istringstream sin { R"({"base_requests":[)"s + stop_json
-      + R"(],"stat_requests":[]})"s };
-  BufferingRequestReader reader { sin };
+  istringstream sin{R"({"base_requests":[)"s + stop_json +
+                    R"(],"stat_requests":[]})"s};
+  BufferingRequestReader reader{sin};
   const auto &base_requests = reader.GetBaseRequests();
   ASSERT_EQUAL(base_requests.size(), 1u);
   ASSERT(holds_alternative<AddStopCmd>(base_requests[0]));
@@ -41,8 +41,8 @@ void TestStopParser() {
 
   // порядок элементов в `cmd.distances` не определён,
   // поэтому сортируем расстояния до остановок для стабильности теста
-  vector<AddStopCmd::Distance> distances { cmd.distances.begin(), cmd.distances
-      .end() };
+  vector<AddStopCmd::Distance> distances{cmd.distances.begin(),
+                                         cmd.distances.end()};
   sort(distances.begin(), distances.end());
   ASSERT_EQUAL(distances.size(), 2u);
   ASSERT_EQUAL(distances[0].first, "Улица Докучаева"s);
@@ -65,9 +65,9 @@ void TestBusParser() {
            ],
            "is_roundtrip": true
          })"s;
-    istringstream sin { R"({"base_requests":[)"s + stop_json
-        + R"(],"stat_requests":[]})"s };
-    BufferingRequestReader reader { sin };
+    istringstream sin{R"({"base_requests":[)"s + stop_json +
+                      R"(],"stat_requests":[]})"s};
+    BufferingRequestReader reader{sin};
     const auto &base_requests = reader.GetBaseRequests();
     ASSERT_EQUAL(base_requests.size(), 1u);
     ASSERT(holds_alternative<AddBusCmd>(base_requests[0]));
@@ -75,8 +75,8 @@ void TestBusParser() {
     ASSERT_EQUAL(cmd.name, "14"s);
     ASSERT_EQUAL(cmd.route_type, RouteType::CIRCULAR);
     ASSERT_EQUAL(cmd.stop_names,
-                 (vector<string> { "Улица Лизы Чайкиной"s, "Электросети"s,
-                     "Улица Докучаева"s, "Улица Лизы Чайкиной"s }));
+                 (vector<string>{"Улица Лизы Чайкиной"s, "Электросети"s,
+                                 "Улица Докучаева"s, "Улица Лизы Чайкиной"s}));
   }
   {
     string stop_json =
@@ -90,12 +90,13 @@ void TestBusParser() {
            ],
            "is_roundtrip": false
          })"s;
-    istringstream sin { R"({"base_requests":[)"s + stop_json
-        + R"(],"stat_requests":[]})"s };
-    BufferingRequestReader reader { sin };
+    istringstream sin{R"({"base_requests":[)"s + stop_json +
+                      R"(],"stat_requests":[]})"s};
+    BufferingRequestReader reader{sin};
     const auto &base_requests = reader.GetBaseRequests();
     ASSERT_EQUAL(base_requests.size(), 1u);
-    ASSERT_EQUAL(get<AddBusCmd>(base_requests[0]).route_type, RouteType::LINEAR);
+    ASSERT_EQUAL(get<AddBusCmd>(base_requests[0]).route_type,
+                 RouteType::LINEAR);
   }
 }
 
@@ -106,9 +107,9 @@ void TestStopStatRequestParser() {
          "type": "Stop",
          "name": "Улица Докучаева"
        })"s;
-  istringstream sin { R"({"base_requests":[],"stat_requests":[)"s
-      + stop_stat_request_json + R"(]})"s };
-  BufferingRequestReader reader { sin };
+  istringstream sin{R"({"base_requests":[],"stat_requests":[)"s +
+                    stop_stat_request_json + R"(]})"s};
+  BufferingRequestReader reader{sin};
   const auto &stat_requests = reader.GetStatRequests();
   ASSERT_EQUAL(stat_requests.size(), 1u);
   ASSERT(holds_alternative<StopStatRequest>(stat_requests[0]));
@@ -124,9 +125,9 @@ void TestBusStatRequestParser() {
          "type": "Bus",
          "name": "14"
        })"s;
-  istringstream sin { R"({"base_requests":[],"stat_requests":[)"s
-      + bus_stat_request_json + R"(]})"s };
-  BufferingRequestReader reader { sin };
+  istringstream sin{R"({"base_requests":[],"stat_requests":[)"s +
+                    bus_stat_request_json + R"(]})"s};
+  BufferingRequestReader reader{sin};
   const auto &stat_requests = reader.GetStatRequests();
   ASSERT_EQUAL(stat_requests.size(), 1u);
   ASSERT(holds_alternative<BusStatRequest>(stat_requests[0]));
@@ -162,10 +163,10 @@ void TestRenderSettings() {
              "red"
            ]
          })"s;
-    istringstream sin {
-        R"({"base_requests":[],"stat_requests":[],"render_settings":)"s
-            + render_settings_json + R"(})"s };
-    BufferingRequestReader reader { sin };
+    istringstream sin{
+        R"({"base_requests":[],"stat_requests":[],"render_settings":)"s +
+        render_settings_json + R"(})"s};
+    BufferingRequestReader reader{sin};
     ASSERT(reader.GetRenderSettings());
     const auto &rs = *reader.GetRenderSettings();
     ASSERT_SOFT_EQUAL(rs.width, 1200.0);
@@ -174,18 +175,18 @@ void TestRenderSettings() {
     ASSERT_SOFT_EQUAL(rs.line_width, 14.0);
     ASSERT_SOFT_EQUAL(rs.stop_radius, 5.0);
     ASSERT_EQUAL(rs.bus_label_font_size, 20u);
-    ASSERT_EQUAL(rs.bus_label_offset, (svg::Point { 7.0, 15.0 }));
+    ASSERT_EQUAL(rs.bus_label_offset, (svg::Point{7.0, 15.0}));
     ASSERT_EQUAL(rs.stop_label_font_size, 21u);
-    ASSERT_EQUAL(rs.stop_label_offset, (svg::Point { 7.1, -3.1 }));
-    ASSERT_EQUAL(rs.underlayer_color, (svg::Color { svg::Rgba { 255, 255, 255,
-        0.85 } }));
+    ASSERT_EQUAL(rs.stop_label_offset, (svg::Point{7.1, -3.1}));
+    ASSERT_EQUAL(rs.underlayer_color,
+                 (svg::Color{svg::Rgba{255, 255, 255, 0.85}}));
     ASSERT_SOFT_EQUAL(rs.underlayer_width, 3.0);
-    ASSERT_EQUAL(rs.color_palette, (vector<svg::Color> { "green"s, svg::Rgb {
-        255, 160, 0 }, "red"s }));
+    ASSERT_EQUAL(rs.color_palette,
+                 (vector<svg::Color>{"green"s, svg::Rgb{255, 160, 0}, "red"s}));
   }
   {
-    istringstream sin { R"({"base_requests":[],"stat_requests":[]})"s };
-    BufferingRequestReader reader { sin };
+    istringstream sin{R"({"base_requests":[],"stat_requests":[]})"s};
+    BufferingRequestReader reader{sin};
     ASSERT(!reader.GetRenderSettings().has_value());
   }
 }
@@ -194,9 +195,9 @@ void TestBusStatResponsePrinter() {
   ostringstream sout;
 
   {
-    ResponsePrinter printer { sout };
-    printer.PrintResponse(12345678, BusStatResponse { BusStats { 4, 3, 9300.0,
-        4254.267991437 } });
+    ResponsePrinter printer{sout};
+    printer.PrintResponse(
+        12345678, BusStatResponse{BusStats{4, 3, 9300.0, 4254.267991437}});
   }
   ASSERT_EQUAL(
       sout.str(),
@@ -207,9 +208,9 @@ void TestStopStatResponsePrinter() {
   ostringstream sout;
 
   {
-    ResponsePrinter printer { sout };
-    printer.PrintResponse(12345, StopStatResponse { BusesForStop { "14"sv,
-        "22к"sv } });
+    ResponsePrinter printer{sout};
+    printer.PrintResponse(12345,
+                          StopStatResponse{BusesForStop{"14"sv, "22к"sv}});
   }
   ASSERT_EQUAL(sout.str(), R"([{"buses":["14","22к"],"request_id":12345}])"s);
 }
@@ -218,9 +219,9 @@ void TestEmptyResponsePrinter() {
   ostringstream sout;
 
   {
-    ResponsePrinter printer { sout };
-    printer.PrintResponse(12345, { });
-    printer.PrintResponse(12346, { });
+    ResponsePrinter printer{sout};
+    printer.PrintResponse(12345, {});
+    printer.PrintResponse(12346, {});
   }
 
   ASSERT_EQUAL(

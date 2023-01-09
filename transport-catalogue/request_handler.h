@@ -14,16 +14,15 @@
 
 namespace transport_catalogue::request_handler {
 
-using transport_catalogue::map_renderer::RenderSettings;
 using transport_catalogue::map_renderer::MapRenderer;
+using transport_catalogue::map_renderer::RenderSettings;
 using transport_catalogue::router::RouterSettings;
 
-//TODO: убрать дублирующую структуру из input_reader.h
+// TODO: убрать дублирующую структуру из input_reader.h
 /**
  * Команда на добавление остановки в транспортный справочник.
  */
 struct AddStopCmd {
-
   /**
    * Первый элемент - название остановки
    * второй - расстояние до неё в метрах
@@ -46,12 +45,11 @@ struct AddStopCmd {
   std::vector<Distance> distances;
 };
 
-//TODO: убрать дублирующую структуру из input_reader.h
+// TODO: убрать дублирующую структуру из input_reader.h
 /**
  * Команда на добавление маршрута в транспортный справочник.
  */
 struct AddBusCmd {
-
   /**
    * Название маршрута.
    */
@@ -93,9 +91,7 @@ struct StopStatRequest : public BaseStatRequest {
 /**
  * Запрос на получение карты маршрутов в SVG формате.
  */
-struct MapRequest : public BaseStatRequest {
-
-};
+struct MapRequest : public BaseStatRequest {};
 
 struct RouteRequest : public BaseStatRequest {
   std::string from;
@@ -108,30 +104,33 @@ struct RouteRequest : public BaseStatRequest {
 using BaseRequest = std::variant<AddStopCmd, AddBusCmd>;
 
 /**
- * Все возможные типы запросов на получение статистики из транспортного справочника.
+ * Все возможные типы запросов на получение статистики из транспортного
+ * справочника.
  */
-using StatRequest = std::variant<BusStatRequest, StopStatRequest, MapRequest, RouteRequest>;
+using StatRequest =
+    std::variant<BusStatRequest, StopStatRequest, MapRequest, RouteRequest>;
 
 /**
  * Базовый класс для получения запросов к транспортному справочнику.
  *
- * Классы-наследники получают все запросы от пользователя и складывают во внутренний буфер.
+ * Классы-наследники получают все запросы от пользователя и складывают во
+ * внутренний буфер.
  */
 class AbstractBufferingRequestReader {
  public:
   /**
    * Запросы на наполнение базы транспортного справочника.
    */
-  virtual const std::vector<BaseRequest>& GetBaseRequests() const = 0;
+  virtual const std::vector<BaseRequest> &GetBaseRequests() const = 0;
 
   /**
    * Запросы на получение статистики из транспортного справочника.
    */
-  virtual const std::vector<StatRequest>& GetStatRequests() const = 0;
+  virtual const std::vector<StatRequest> &GetStatRequests() const = 0;
 
-  virtual const std::optional<RenderSettings>& GetRenderSettings() const = 0;
+  virtual const std::optional<RenderSettings> &GetRenderSettings() const = 0;
 
-  virtual const std::optional<RouterSettings>& GetRouterSettings() const = 0;
+  virtual const std::optional<RouterSettings> &GetRouterSettings() const = 0;
 
  protected:
   // не разрешаем полиморфное владение наследниками этого класса. Незачем
@@ -162,17 +161,20 @@ struct MapResponse {
 /**
  * Все возможные типы ответов на запросы на получение статистики.
  *
- * `std::monostate` - значит, что сущность, по которой была запрошена статистика, не существует.
+ * `std::monostate` - значит, что сущность, по которой была запрошена
+ * статистика, не существует.
  */
-using StatResponse = std::variant<std::monostate, BusStatResponse,
-StopStatResponse, MapResponse, router::RouteResult>;
+using StatResponse =
+    std::variant<std::monostate, BusStatResponse, StopStatResponse, MapResponse,
+                 router::RouteResult>;
 
 /**
  * Базовый класс для печати ответов на запросы к транспортному справочнику.
  */
 class AbstractStatResponsePrinter {
  public:
-  virtual void PrintResponse(int request_id, const StatResponse&) = 0;
+  virtual void PrintResponse(int request_id, const StatResponse &) = 0;
+
  protected:
   ~AbstractStatResponsePrinter() = default;
 };
@@ -181,12 +183,10 @@ class BufferingRequestHandler {
  public:
   BufferingRequestHandler(TransportCatalogue &transport_catalogue,
                           const AbstractBufferingRequestReader &request_reader)
-      :
-      transport_catalogue_(transport_catalogue),
-      request_reader_(request_reader) {
-  }
+      : transport_catalogue_(transport_catalogue),
+        request_reader_(request_reader) {}
   void ProcessRequests(AbstractStatResponsePrinter &stat_response_printer);
-  void RenderMap(MapRenderer&);
+  void RenderMap(MapRenderer &);
 
  private:
   TransportCatalogue &transport_catalogue_;

@@ -1,6 +1,7 @@
 #include "input_reader.h"
 
 #include <stdlib.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -20,10 +21,11 @@ namespace detail {
  * Делит строку на части разделённые строкой `by`.
  * Отрезаются все пробельные символы вокруг выделенных частей текста.
  * Если текст начинается с разделителя, первым элементом будет пустая строка.
- * Если текст кончается разделителем, последним элементом также будет пустая строка.
+ * Если текст кончается разделителем, последним элементом также будет пустая
+ * строка.
  *
- * `string_view` в результирующем векторе ссылаются на ту же строку, на какую ссылается
- * параметр `string_view line`.
+ * `string_view` в результирующем векторе ссылаются на ту же строку, на какую
+ * ссылается параметр `string_view line`.
  */
 vector<string_view> SplitNoWS(string_view line, const string_view by) {
   vector<string_view> parts;
@@ -34,7 +36,8 @@ vector<string_view> SplitNoWS(string_view line, const string_view by) {
       ;
 
     size_t delim_i = min(line.find(by, begin), line.size());
-    // end - "символ" после последнего символа выделяемой строки, т.е. ему можно быть равным line.size()
+    // end - "символ" после последнего символа выделяемой строки, т.е. ему можно
+    // быть равным line.size()
     size_t end = delim_i;
     // убираем пробелы между окончанием строки и разделителем
     // здесь могли бы быть проблемы, если end == 0 или end == begin.
@@ -46,8 +49,8 @@ vector<string_view> SplitNoWS(string_view line, const string_view by) {
 
     // если разделитель - пробельный символ, и мы добрались до конца строки,
     // не добавляем пустую строку в конец списка
-    if (by.size() == 1 && isspace(by[0]) && delim_i == line.size()
-        && end == begin) {
+    if (by.size() == 1 && isspace(by[0]) && delim_i == line.size() &&
+        end == begin) {
     } else {
       parts.push_back(line.substr(begin, end - begin));
     }
@@ -64,20 +67,21 @@ vector<string_view> SplitNoWS(string_view line, const string_view by) {
  * Делит строку на части разделённые символом `by`.
  * Отрезаются все пробельные символы вокруг выделенных частей текста.
  * Если текст начинается с разделителя, первым элементом будет пустая строка.
- * Если текст кончается разделителем, последним элементом также будет пустая строка.
+ * Если текст кончается разделителем, последним элементом также будет пустая
+ * строка.
  *
- * `string_view` в результирующем векторе ссылаются на ту же строку, на какую ссылается
- * параметр `string_view line`.
+ * `string_view` в результирующем векторе ссылаются на ту же строку, на какую
+ * ссылается параметр `string_view line`.
  */
 vector<string_view> SplitNoWS(string_view line, char by) {
-  return SplitNoWS(line, string_view { &by, 1 });
+  return SplitNoWS(line, string_view{&by, 1});
 }
 
 /**
  * Парсит команду на добавление остановки.
  *
- * `string_view` в результирующей структуре ссылаются на ту же строку, на какую ссылается
- * параметр `string_view line`.
+ * `string_view` в результирующей структуре ссылаются на ту же строку, на какую
+ * ссылается параметр `string_view line`.
  */
 AddStopCmd ParseAddStopCmd(string_view line) {
   auto name_rest = SplitNoWS(line, ':');
@@ -96,16 +100,16 @@ AddStopCmd ParseAddStopCmd(string_view line) {
     assert(len_part.size() > 0 && len_part.back() == 'm');
     size_t dis = 0;
     from_chars(len_part.data(), len_part.data() + len_part.size() - 1, dis);
-    distances.emplace_back(string { dis_parts[1] }, dis);
+    distances.emplace_back(string{dis_parts[1]}, dis);
   }
-  return {string {name_rest[0]}, {lat, lng}, move(distances)};
+  return {string{name_rest[0]}, {lat, lng}, move(distances)};
 }
 
 /**
  * Парсит команду на добавление маршрута.
  *
- * `string_view` в результирующей структуре ссылаются на ту же строку, на какую ссылается
- * параметр `string_view line`.
+ * `string_view` в результирующей структуре ссылаются на ту же строку, на какую
+ * ссылается параметр `string_view line`.
  */
 AddBusCmd ParseAddBusCmd(string_view line) {
   auto name_route = SplitNoWS(line, ':');
@@ -121,26 +125,24 @@ AddBusCmd ParseAddBusCmd(string_view line) {
   vector<string> stops;
   stops.reserve(stops_sv.size());
   transform(stops_sv.begin(), stops_sv.end(), back_inserter(stops),
-            [](string_view sv) {
-              return string { sv };
-            });
+            [](string_view sv) { return string{sv}; });
 
   return {
-    string {name},
-    route_type,
-    move(stops),
+      string{name},
+      route_type,
+      move(stops),
   };
 }
 
-}  // namespace transport_catalogue::input_reader::from_char_stream::detail
+}  // namespace detail
 
 /**
  * Парсит команды из символьного потока `sin_` и складывает результат
  * в векторы `add_stop_cmds_` и `add_bus_cmds_`.
  */
 void DbReader::Parse() {
-  using detail::ParseAddStopCmd;
   using detail::ParseAddBusCmd;
+  using detail::ParseAddStopCmd;
 
   int cmd_count;
   sin_ >> cmd_count;
@@ -150,11 +152,11 @@ void DbReader::Parse() {
     if (cmd == "Stop"s) {
       string line;
       getline(sin_ >> ws, line);
-      add_stop_cmds_.push_back(ParseAddStopCmd(string_view { line }));
+      add_stop_cmds_.push_back(ParseAddStopCmd(string_view{line}));
     } else if (cmd == "Bus"s) {
       string line;
       getline(sin_ >> ws, line);
-      add_bus_cmds_.push_back(ParseAddBusCmd(string_view { line }));
+      add_bus_cmds_.push_back(ParseAddBusCmd(string_view{line}));
     }
   }
 }
@@ -165,7 +167,7 @@ void DbReader::Parse() {
  * См описание формата в `DbReader`
  */
 void ReadDB(TransportCatalogue &transport_catalogue, std::istream &sin) {
-  DbReader input { sin };
+  DbReader input{sin};
   for (const AddStopCmd &add_stop : input.GetAddStopCmds()) {
     transport_catalogue.AddStop(add_stop.name, add_stop.coordinates);
   }
@@ -180,6 +182,6 @@ void ReadDB(TransportCatalogue &transport_catalogue, std::istream &sin) {
   }
 }
 
-}  // namespace transport_catalogue::input_reader::from_char_stream
+}  // namespace from_char_stream
 
 }  // namespace transport_catalogue::input_reader

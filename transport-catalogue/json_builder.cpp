@@ -8,10 +8,8 @@ using namespace std;
 
 namespace json {
 
-Builder::Builder(Builder &&other)
-    :
-    stack_(move(other.stack_)),
-    key_stack_(move(other.key_stack_)) {
+Builder::Builder(Builder&& other)
+    : stack_(move(other.stack_)), key_stack_(move(other.key_stack_)) {
   if (other.moved_out_of_) {
     throw logic_error("double move"s);
   }
@@ -20,7 +18,7 @@ Builder::Builder(Builder &&other)
   moved_out_of_ = exchange(other.moved_out_of_, true);
 }
 
-Builder& Builder::operator=(Builder &&lhs) {
+Builder& Builder::operator=(Builder&& lhs) {
   if (&lhs == this) {
     return *this;
   }
@@ -29,7 +27,7 @@ Builder& Builder::operator=(Builder &&lhs) {
   return *this;
 }
 
-void Builder::Swap(Builder &other) {
+void Builder::Swap(Builder& other) {
   swap(stack_, other.stack_);
   swap(key_stack_, other.key_stack_);
   swap(finished_, other.finished_);
@@ -76,7 +74,7 @@ Builder& Builder::Value(Node::Value value) {
     return *this;
   }
 
-  auto &cur_node = stack_.back();
+  auto& cur_node = stack_.back();
   if (cur_node.IsArray()) {
     cur_node.AsArray().emplace_back(move(value));
     return *this;
@@ -104,7 +102,7 @@ DictKeyPart Builder::StartDict() {
   if (expect_key_) {
     throw logic_error("expected key, start of dict found"s);
   }
-  stack_.push_back(Dict { });
+  stack_.push_back(Dict{});
   expect_key_ = true;
   return {move(*this)};
 }
@@ -144,7 +142,7 @@ ArrayPart Builder::StartArray() {
   if (expect_key_) {
     throw logic_error("expected key"s);
   }
-  stack_.push_back(Array { });
+  stack_.push_back(Array{});
   return {move(*this)};
 }
 
@@ -216,9 +214,7 @@ DictKeyPart DictValuePart::Value(Node::Value value) {
 /**
  * Начать построение JSON словаря.
  */
-DictKeyPart DictValuePart::StartDict() {
-  return builder_.StartDict();
-}
+DictKeyPart DictValuePart::StartDict() { return builder_.StartDict(); }
 
 /**
  * Начать построение JSON массива.
@@ -227,9 +223,7 @@ DictKeyPart DictValuePart::StartDict() {
  * вызывать на ней метод `Value()` несколько раз, в отличие от других
  * временных объектов-конструкторов. См. документацию к классу `Builder`.
  */
-ArrayPart DictValuePart::StartArray() {
-  return builder_.StartArray();
-}
+ArrayPart DictValuePart::StartArray() { return builder_.StartArray(); }
 
 /**
  * Указать значение в собираемом JSON массиве.
@@ -247,16 +241,12 @@ ArrayPart& ArrayPart::Value(Node::Value value) {
 /**
  * Начать построение JSON словаря.
  */
-DictKeyPart ArrayPart::StartDict() {
-  return builder_.StartDict();
-}
+DictKeyPart ArrayPart::StartDict() { return builder_.StartDict(); }
 
 /**
  * Начать построение JSON массива.
  */
-ArrayPart ArrayPart::StartArray() {
-  return builder_.StartArray();
-}
+ArrayPart ArrayPart::StartArray() { return builder_.StartArray(); }
 
 /**
  * Закончить построение JSON массива.

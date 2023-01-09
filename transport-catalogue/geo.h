@@ -17,7 +17,7 @@ const double EARTH_RADIUS = 6371000.0;
  */
 const double FP_PRECISION = 1e-13;
 
-}  // namespace transport_catalogue::geo::detail
+}  // namespace detail
 
 /**
  * Точность, с которой можно указывать координаты
@@ -38,12 +38,10 @@ struct Coordinates {
     using namespace std;
     using detail::FP_PRECISION;
 
-    return std::abs(lat - other.lat) < (COORD_PRECISION - FP_PRECISION)
-        && std::abs(lng - other.lng) < (COORD_PRECISION - FP_PRECISION);
+    return std::abs(lat - other.lat) < (COORD_PRECISION - FP_PRECISION) &&
+           std::abs(lng - other.lng) < (COORD_PRECISION - FP_PRECISION);
   }
-  bool operator!=(const Coordinates &other) const {
-    return !(*this == other);
-  }
+  bool operator!=(const Coordinates &other) const { return !(*this == other); }
 };
 
 inline double ComputeDistance(Coordinates from, Coordinates to) {
@@ -54,10 +52,10 @@ inline double ComputeDistance(Coordinates from, Coordinates to) {
     return 0;
   }
 
-  return acos(
-      sin(from.lat * RAD_PER_DEG) * sin(to.lat * RAD_PER_DEG)
-          + cos(from.lat * RAD_PER_DEG) * cos(to.lat * RAD_PER_DEG)
-              * cos(abs(from.lng - to.lng) * RAD_PER_DEG)) * EARTH_RADIUS;
+  return acos(sin(from.lat * RAD_PER_DEG) * sin(to.lat * RAD_PER_DEG) +
+              cos(from.lat * RAD_PER_DEG) * cos(to.lat * RAD_PER_DEG) *
+                  cos(abs(from.lng - to.lng) * RAD_PER_DEG)) *
+         EARTH_RADIUS;
 }
 
 }  // namespace transport_catalogue::geo

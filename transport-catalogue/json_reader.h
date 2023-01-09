@@ -10,17 +10,18 @@
 
 namespace transport_catalogue::json_reader {
 
+using transport_catalogue::map_renderer::RenderSettings;
 using transport_catalogue::request_handler::AbstractBufferingRequestReader;
 using transport_catalogue::request_handler::BaseRequest;
 using transport_catalogue::request_handler::StatRequest;
-using transport_catalogue::map_renderer::RenderSettings;
 
 using transport_catalogue::request_handler::AbstractStatResponsePrinter;
 using transport_catalogue::request_handler::StatResponse;
 using transport_catalogue::router::RouterSettings;
 
 /**
- * Читает запросы к транспортному справочнику в JSON формате из символьного потока.
+ * Читает запросы к транспортному справочнику в JSON формате из символьного
+ * потока.
  *
  * Все запросы читаются за раз в конструкторе и складываются во временный буфер.
  *
@@ -29,7 +30,8 @@ using transport_catalogue::router::RouterSettings;
  * {
  *   "base_requests": [<запросы на наполнение БД справочника>],
  *   "stat_requests": [<запросы на получение статистики из справочника>],
- *   "render_settings": { <настройки отрисовки карты в SVG формате> }, // может отсутствовать
+ *   // может отсутствовать
+ *   "render_settings": { <настройки отрисовки карты в SVG формате> },
  * }
  * ```
  *
@@ -70,20 +72,29 @@ using transport_catalogue::router::RouterSettings;
  *   "width": 1200.0,       // ширина и высота изображения в пикселях.
  *   "height": 1200.1,
  *   "padding": 50.0,       // отступ краёв карты от границ SVG-документа.
- *   "line_width": 14.0,    // толщина линий, которыми рисуются автобусные маршруты.
- *   "stop_radius": 5.0,    // радиус окружностей, которыми обозначаются остановки.
- *   "bus_label_font_size": 20,       // размер текста, которым написаны названия автобусных маршрутов.
- *   "bus_label_offset": [7.0, 15.0], // смещение надписи с названием маршрута относительно координат конечной остановки на карте.
- *                                    // Задаёт значения свойств dx и dy SVG-элемента <text>.
- *   "stop_label_font_size": 21,      // размер текста, которым отображаются названия остановок.
- *   "stop_label_offset": [7.1, -3.1],// смещение названия остановки относительно её координат на карте. Массив из двух элементов типа double.
- *                                    // Задаёт значения свойств dx и dy SVG-элемента <text>.
- *   "underlayer_color": [255, 255, 255, 0.85], // цвет подложки под названиями остановок и маршрутов.
- *   "underlayer_width": 3.0,    // толщина подложки под названиями остановок и маршрутов.
- *   "color_palette": [          // цветовая палитра.
- *     "green",
- *     [255, 160, 0],
- *     "red"
+ *   // толщина линий, которыми рисуются автобусные маршруты.
+ *   "line_width": 14.0,
+ *   // радиус окружностей, которыми обозначаются остановки.
+ *   "stop_radius": 5.0,
+ *   // размер текста, которым написаны названия автобусных маршрутов.
+ *   "bus_label_font_size": 20,
+ *   // смещение надписи с названием маршрута относительно координат конечной
+ *   // остановки на карте.
+ *   // Задаёт значения свойств dx и dy SVG-элемента <text>.
+ *   "bus_label_offset": [7.0, 15.0],
+ *   // размер текста, которым отображаются названия остановок.
+ *   "stop_label_font_size": 21,
+ *   // смещение названия остановки относительно её координат на карте.
+ *   // Массив из двух элементов типа double.
+ *   // Задаёт значения свойств dx и dy SVG-элемента <text>.
+ *   "stop_label_offset": [7.1, -3.1],
+ *   // цвет подложки под названиями остановок и маршрутов.
+ *   "underlayer_color": [255, 255, 255, 0.85],
+ *   // толщина подложки под названиями остановок и маршрутов.
+ *   "underlayer_width": 3.0,
+ *   // цветовая палитра
+ *   "color_palette": [
+ * .   "green", [255, 160, 0], "red"
  *   ]
  * }
  * ```
@@ -118,13 +129,10 @@ using transport_catalogue::router::RouterSettings;
  */
 class BufferingRequestReader final : public AbstractBufferingRequestReader {
  public:
-
   /**
    * Парсит команды из символьного потока `in`.
    */
-  BufferingRequestReader(std::istream &in) {
-    Parse(in);
-  }
+  BufferingRequestReader(std::istream& in) { Parse(in); }
 
   virtual const std::vector<BaseRequest>& GetBaseRequests() const override {
     return base_requests_;
@@ -135,13 +143,13 @@ class BufferingRequestReader final : public AbstractBufferingRequestReader {
   /**
    * Возвращает настройки отрисовки карты в SVG формате. Может отсутствовать
    */
-  virtual const std::optional<RenderSettings>& GetRenderSettings() const
-      override {
+  virtual const std::optional<RenderSettings>& GetRenderSettings()
+      const override {
     return render_settings_;
   }
 
-  virtual const std::optional<RouterSettings>& GetRouterSettings() const
-      override {
+  virtual const std::optional<RouterSettings>& GetRouterSettings()
+      const override {
     return router_settings_;
   }
 
@@ -155,7 +163,8 @@ class BufferingRequestReader final : public AbstractBufferingRequestReader {
 };
 
 /**
- * Печатает ответы на запросы к транспортному справочнику в JSON формате в символьный поток.
+ * Печатает ответы на запросы к транспортному справочнику в JSON формате в
+ * символьный поток.
  *
  * Ответы печатаются в виде JSON-массива в потоковом режиме:
  * 1. сначала печатается открывающая квадратная скобка;
@@ -203,8 +212,9 @@ class ResponsePrinter final : public AbstractStatResponsePrinter {
   ResponsePrinter(std::ostream&);
   virtual void PrintResponse(int request_id, const StatResponse&) override;
   ~ResponsePrinter();
+
  private:
-  std::ostream &out_;
+  std::ostream& out_;
 
   // выставляется в `true` после первой печати
   bool printed_something_ = false;
@@ -213,4 +223,4 @@ class ResponsePrinter final : public AbstractStatResponsePrinter {
   void End();
 };
 
-}
+}  // namespace transport_catalogue::json_reader

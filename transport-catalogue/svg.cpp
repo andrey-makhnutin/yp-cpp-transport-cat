@@ -7,7 +7,8 @@ using namespace std;
 namespace svg::detail {
 
 /**
- * Структура-маркер для переопределения вывода строки с XML-экранированием в `ostream`.
+ * Структура-маркер для переопределения вывода строки с XML-экранированием в
+ * `ostream`.
  */
 struct XMLEscaped {
   string_view str;
@@ -19,12 +20,8 @@ struct XMLEscaped {
 struct ColorPrintVisitor {
   ostream &out;
 
-  void operator()(monostate) {
-    out << "none"sv;
-  }
-  void operator()(string &str) {
-    out << str;
-  }
+  void operator()(monostate) { out << "none"sv; }
+  void operator()(string &str) { out << str; }
   void operator()(Rgb color) {
     out << "rgb("sv << static_cast<int>(color.red) << ','
         << static_cast<int>(color.green) << ',' << static_cast<int>(color.blue)
@@ -39,7 +36,7 @@ struct ColorPrintVisitor {
 
 }  // namespace svg::detail
 
-ostream& operator<<(ostream &out, svg::detail::XMLEscaped raw) {
+ostream &operator<<(ostream &out, svg::detail::XMLEscaped raw) {
   for (char c : raw.str) {
     switch (c) {
       case '<':
@@ -64,7 +61,7 @@ ostream& operator<<(ostream &out, svg::detail::XMLEscaped raw) {
   return out;
 }
 
-ostream& operator<<(ostream &out, svg::StrokeLineCap line_cap) {
+ostream &operator<<(ostream &out, svg::StrokeLineCap line_cap) {
   using svg::StrokeLineCap;
 
   switch (line_cap) {
@@ -83,7 +80,7 @@ ostream& operator<<(ostream &out, svg::StrokeLineCap line_cap) {
   return out;
 }
 
-ostream& operator<<(ostream &out, svg::StrokeLineJoin line_join) {
+ostream &operator<<(ostream &out, svg::StrokeLineJoin line_join) {
   using svg::StrokeLineJoin;
 
   switch (line_join) {
@@ -108,12 +105,12 @@ ostream& operator<<(ostream &out, svg::StrokeLineJoin line_join) {
   return out;
 }
 
-ostream& operator<<(ostream &out, svg::Color color) {
-  visit(svg::detail::ColorPrintVisitor { out }, color);
+ostream &operator<<(ostream &out, svg::Color color) {
+  visit(svg::detail::ColorPrintVisitor{out}, color);
   return out;
 }
 
-ostream& operator<<(ostream &out, svg::Point point) {
+ostream &operator<<(ostream &out, svg::Point point) {
   out << '{' << point.x << ", "sv << point.y << '}';
   return out;
 }
@@ -127,8 +124,8 @@ bool Rgb::operator==(Rgb other) const {
 }
 
 bool Rgba::operator==(Rgba other) const {
-  return red == other.red && green == other.green && blue == other.blue
-      && opacity == other.opacity;
+  return red == other.red && green == other.green && blue == other.blue &&
+         opacity == other.opacity;
 }
 
 // ----------- Point --------------------
@@ -150,12 +147,12 @@ void Object::Render(const RenderContext &context) const {
 
 // ---------- Circle --------------------
 
-Circle& Circle::SetCenter(Point center) {
+Circle &Circle::SetCenter(Point center) {
   center_ = center;
   return *this;
 }
 
-Circle& Circle::SetRadius(double radius) {
+Circle &Circle::SetRadius(double radius) {
   radius_ = radius;
   return *this;
 }
@@ -170,7 +167,7 @@ void Circle::RenderObject(const RenderContext &context) const {
 
 // ---------- Polyline ------------------
 
-Polyline& Polyline::AddPoint(Point point) {
+Polyline &Polyline::AddPoint(Point point) {
   this->points_.emplace_back(point);
   return *this;
 }
@@ -193,32 +190,32 @@ void Polyline::RenderObject(const RenderContext &context) const {
 
 // ---------- Text ----------------------
 
-Text& Text::SetPosition(Point pos) {
+Text &Text::SetPosition(Point pos) {
   pos_ = pos;
   return *this;
 }
 
-Text& Text::SetOffset(Point offset) {
+Text &Text::SetOffset(Point offset) {
   offset_ = offset;
   return *this;
 }
 
-Text& Text::SetFontSize(uint32_t size) {
+Text &Text::SetFontSize(uint32_t size) {
   font_size_ = size;
   return *this;
 }
 
-Text& Text::SetFontFamily(std::string font_family) {
+Text &Text::SetFontFamily(std::string font_family) {
   font_family_.emplace(move(font_family));
   return *this;
 }
 
-Text& Text::SetFontWeight(std::string font_weight) {
+Text &Text::SetFontWeight(std::string font_weight) {
   font_weight_.emplace(move(font_weight));
   return *this;
 }
 
-Text& Text::SetData(std::string data) {
+Text &Text::SetData(std::string data) {
   data_ = move(data);
   return *this;
 }
@@ -235,7 +232,7 @@ void Text::RenderObject(const RenderContext &context) const {
     out << " font-weight=\""sv << *font_weight_ << '"';
   }
   this->PathProps::RenderAttrs(out);
-  out << '>' << detail::XMLEscaped { data_ } << "</text>"sv;
+  out << '>' << detail::XMLEscaped{data_} << "</text>"sv;
 }
 
 // ---------- Document ------------------
@@ -247,7 +244,7 @@ void Document::AddPtr(std::unique_ptr<Object> &&obj) {
 void Document::Render(std::ostream &out) const {
   out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"sv << endl
       << "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">"sv << endl;
-  RenderContext render_ctx { out, 2, 2 };
+  RenderContext render_ctx{out, 2, 2};
   for (const auto &obj : objects_) {
     obj->Render(render_ctx);
   }

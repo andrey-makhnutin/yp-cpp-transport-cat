@@ -20,29 +20,27 @@ namespace to_char_stream {
  */
 class StatsPrinter {
  public:
-  StatsPrinter(std::ostream &sout)
-      :
-      sout_(sout) {
-  }
+  StatsPrinter(std::ostream &sout) : sout_(sout) {}
 
   void PrintBusStats(std::string_view bus_name,
                      const std::optional<BusStats> &bus_stats);
   void PrintStopInfo(std::string_view stop_name,
                      const std::optional<BusesForStop> &stop_info);
+
  private:
   std::ostream &sout_;
 };
 
-}  // namespace transport_catalogue::stat_reader::to_char_stream
+}  // namespace to_char_stream
 
 namespace from_char_stream {
 
 /**
- * Класс-обработчик запросов на получение статистики из транспортного справочника
- * из символьного потока.
- * Запросы обрабатываются методом `ProcessRequest`, который принимает ссылки
- * на объект транспортного справочника, к которому будет обращён запрос, и
- * на объект-принтер результатов.
+ * Класс-обработчик запросов на получение статистики из транспортного
+ * справочника из символьного потока. Запросы обрабатываются методом
+ * `ProcessRequest`, который принимает ссылки на объект транспортного
+ * справочника, к которому будет обращён запрос, и на объект-принтер
+ * результатов.
  *
  * Формат ввода такой:
  * ```
@@ -60,17 +58,15 @@ namespace from_char_stream {
  */
 class StatsRequestProcessor {
  public:
-  StatsRequestProcessor(std::istream &sin)
-      :
-      sin_(sin) {
-  }
+  StatsRequestProcessor(std::istream &sin) : sin_(sin) {}
 
-  void ProcessRequests(const TransportCatalogue&,
-                       to_char_stream::StatsPrinter&);
+  void ProcessRequests(const TransportCatalogue &,
+                       to_char_stream::StatsPrinter &);
+
  private:
   std::istream &sin_;
 };
 
-}  // namespace transport_catalogue::stat_reader::from_char_stream
+}  // namespace from_char_stream
 
 }  // namespace transport_catalogue::stat_reader

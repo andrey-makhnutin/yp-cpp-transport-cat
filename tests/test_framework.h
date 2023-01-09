@@ -16,8 +16,8 @@
 
 namespace TestRunnerPrivate {
 
-template<class Map>
-std::ostream& PrintMap(std::ostream &os, const Map &m) {
+template <class Map>
+std::ostream &PrintMap(std::ostream &os, const Map &m) {
   os << "{";
   bool first = true;
   for (const auto &kv : m) {
@@ -30,8 +30,8 @@ std::ostream& PrintMap(std::ostream &os, const Map &m) {
   return os << "}";
 }
 
-template<class Set>
-std::ostream& PrintSet(std::ostream &os, const Set &s) {
+template <class Set>
+std::ostream &PrintSet(std::ostream &os, const Set &s) {
   os << "{";
   bool first = true;
   for (const auto &x : s) {
@@ -46,8 +46,8 @@ std::ostream& PrintSet(std::ostream &os, const Set &s) {
 
 }  // namespace TestRunnerPrivate
 
-template<class T>
-std::ostream& operator<<(std::ostream &os, const std::vector<T> &s) {
+template <class T>
+std::ostream &operator<<(std::ostream &os, const std::vector<T> &s) {
   os << "{";
   bool first = true;
   for (const auto &x : s) {
@@ -55,37 +55,37 @@ std::ostream& operator<<(std::ostream &os, const std::vector<T> &s) {
       os << ", ";
     }
     first = false;
-    if constexpr (std::is_same_v<T, std::string>
-        || std::is_same_v<T, std::string_view>) {
+    if constexpr (std::is_same_v<T, std::string> ||
+                  std::is_same_v<T, std::string_view>) {
       os << "'";
     }
     os << x;
-    if constexpr (std::is_same_v<T, std::string>
-        || std::is_same_v<T, std::string_view>) {
+    if constexpr (std::is_same_v<T, std::string> ||
+                  std::is_same_v<T, std::string_view>) {
       os << "'";
     }
   }
   return os << "}";
 }
 
-template<class T, class C>
-std::ostream& operator<<(std::ostream &os, const std::set<T, C> &s) {
+template <class T, class C>
+std::ostream &operator<<(std::ostream &os, const std::set<T, C> &s) {
   return TestRunnerPrivate::PrintSet(os, s);
 }
 
-template<class T, class H, class Eq>
-std::ostream& operator<<(std::ostream &os,
+template <class T, class H, class Eq>
+std::ostream &operator<<(std::ostream &os,
                          const std::unordered_set<T, H, Eq> &s) {
   return TestRunnerPrivate::PrintSet(os, s);
 }
 
-template<class K, class V, class C>
-std::ostream& operator<<(std::ostream &os, const std::map<K, V, C> &m) {
+template <class K, class V, class C>
+std::ostream &operator<<(std::ostream &os, const std::map<K, V, C> &m) {
   return TestRunnerPrivate::PrintMap(os, m);
 }
 
-template<class K, class V, class H, class Eq>
-std::ostream& operator<<(std::ostream &os,
+template <class K, class V, class H, class Eq>
+std::ostream &operator<<(std::ostream &os,
                          const std::unordered_map<K, V, H, Eq> &m) {
   return TestRunnerPrivate::PrintMap(os, m);
 }
@@ -97,12 +97,13 @@ std::ostream& operator<<(std::ostream &os,
  * Пример:
  *  ```
  *  void Test() {
- *    AssertEqual("Hello "s + "world"s, "Hello world"s, "String concatenation error"s);
+ *    AssertEqual("Hello "s + "world"s, "Hello world"s,
+ *                "String concatenation error"s);
  *  }
  *  ```
  */
-template<class T, class U>
-void AssertEqual(const T &t, const U &u, const std::string &hint = { }) {
+template <class T, class U>
+void AssertEqual(const T &t, const U &u, const std::string &hint = {}) {
   if (!(t == u)) {
     std::ostringstream os;
     os << "Assertion failed: " << t << " != " << u;
@@ -124,8 +125,8 @@ void AssertEqual(const T &t, const U &u, const std::string &hint = { }) {
  *  }
  *  ```
  */
-template<class T, class U>
-void AssertNotEqual(const T &t, const U &u, const std::string &hint = { }) {
+template <class T, class U>
+void AssertNotEqual(const T &t, const U &u, const std::string &hint = {}) {
   if (t == u) {
     std::ostringstream os;
     os << "Assertion failed: " << t << " == " << u;
@@ -158,17 +159,18 @@ inline void Assert(bool b, const std::string &hint) {
  *
  *  int main() {
  *    TestRunner tr;
- *    // Запускает функцию Test1. Если тест будет провален, его имя будет выведено как
- *    // First test
+ *    // Запускает функцию Test1. Если тест будет провален, его имя будет
+ *    // выведено как First test
  *    tr.RunTest(Test1, "First test"s);
- *    // Если имя теста, совпадает с именем тест-функции, можно использовать максро RUN_TEST:
+ *    // Если имя теста, совпадает с именем тест-функции, можно использовать
+ *    // макрос RUN_TEST:
  *    RUN_TEST(tr, Test2); // Аналогично tr.RunTest(Test2, "Test2");
  *  }
  *  ```
  */
 class TestRunner {
  public:
-  template<class TestFunc>
+  template <class TestFunc>
   void RunTest(TestFunc func, const std::string &test_name) {
     try {
       func();
@@ -199,9 +201,9 @@ class TestRunner {
 #endif
 
 /**
- * Макрос `ASSERT_EQUAL_HINT` проверяет значения выражений `x` и `y` на равенство.
- * Если значения не равны, тест считается проваленным.
- * Строка `hint` будет включена в текст ошибки.
+ * Макрос `ASSERT_EQUAL_HINT` проверяет значения выражений `x` и `y` на
+ * равенство. Если значения не равны, тест считается проваленным. Строка `hint`
+ * будет включена в текст ошибки.
  *
  * Пример:
  *  ```
@@ -212,14 +214,15 @@ class TestRunner {
  *  }
  *  ```
  */
-#define ASSERT_EQUAL_HINT(x, y, hint)                                                   \
-  {                                                                                     \
-    std::ostringstream __assert_private_os;                                             \
-    __assert_private_os << #x << " != " << #y << ", " << _FILE_NAME << ":" << __LINE__; \
-    if (!std::string(hint).empty()) {                                                   \
-      __assert_private_os << " (" << hint << ")";                                       \
-    }                                                                                   \
-    AssertEqual(x, y, __assert_private_os.str());                                       \
+#define ASSERT_EQUAL_HINT(x, y, hint)                                      \
+  {                                                                        \
+    std::ostringstream __assert_private_os;                                \
+    __assert_private_os << #x << " != " << #y << ", " << _FILE_NAME << ":" \
+                        << __LINE__;                                       \
+    if (!std::string(hint).empty()) {                                      \
+      __assert_private_os << " (" << hint << ")";                          \
+    }                                                                      \
+    AssertEqual(x, y, __assert_private_os.str());                          \
   }
 
 /**
@@ -230,15 +233,16 @@ class TestRunner {
  *  ```
  *  void Test() {
  *    ASSERT_EQUAL(2 + 2, 4);
- *    ASSERT_EQUAL(2 + 2, 5); // Эта проверка не сработает, и тест будет провален
+ *    // Эта проверка не сработает, и тест будет провален
+ *    ASSERT_EQUAL(2 + 2, 5);
  *  }
  *  ```
  */
 #define ASSERT_EQUAL(x, y) ASSERT_EQUAL_HINT(x, y, "")
 
 /**
- * Макрос `ASSERT_NOT_EQUAL` проверяет значения выражений `x` и `y` на неравенство.
- * Если значения равны, тест считается проваленным.
+ * Макрос `ASSERT_NOT_EQUAL` проверяет значения выражений `x` и `y` на
+ * неравенство. Если значения равны, тест считается проваленным.
  *
  * Пример:
  *  ```
@@ -249,26 +253,29 @@ class TestRunner {
  *  }
  *  ```
  */
-#define ASSERT_NOT_EQUAL(x, y)                                                          \
-  {                                                                                     \
-    std::ostringstream __assert_private_os;                                             \
-    __assert_private_os << #x << " == " << #y << ", " << _FILE_NAME << ":" << __LINE__; \
-    AssertNotEqual(x, y, __assert_private_os.str());                                    \
+#define ASSERT_NOT_EQUAL(x, y)                                             \
+  {                                                                        \
+    std::ostringstream __assert_private_os;                                \
+    __assert_private_os << #x << " == " << #y << ", " << _FILE_NAME << ":" \
+                        << __LINE__;                                       \
+    AssertNotEqual(x, y, __assert_private_os.str());                       \
   }
 
 /**
  * Макрос `ASSERT_HINT` проверяет истинность выражения `x`. Выражение `x` должно
  * конвертироваться к типу `bool`.
- * Если выражение `x` ложно, тест считается проваленным. Если выражение `x` истинно,
- * выполнение теста продолжается.
- * Строка `hint` будет включена в текст ошибки.
+ * Если выражение `x` ложно, тест считается проваленным. Если выражение `x`
+ * истинно, выполнение теста продолжается. Строка `hint` будет включена в текст
+ * ошибки.
  *
  * Пример:
  *  ```
  *  void Test() {
  *    ASSERT_HINT(2 + 2 == 4, "Math works");
- *    ASSERT_HINT(2, "Boolean cast works"); // число 2 при преобразовании к bool станет значением true
- *    ASSERT_HINT(false, "False is true"); // здесь тест провалится
+ *    // число 2 при преобразовании к bool станет значением true
+ *    ASSERT_HINT(2, "Boolean cast works");
+ *    // здесь тест провалится
+ *    ASSERT_HINT(false, "False is true");
  *    string user_name = "Harry Potter"s;
  *    // Если раскомментировать следующую строку, программа не скомпилируется,
  *    // так как string не может быть преобразован к типу bool.
@@ -276,21 +283,22 @@ class TestRunner {
  *  }
  *  ```
  */
-#define ASSERT_HINT(x, hint)                                                     \
-  {                                                                              \
-    std::ostringstream __assert_private_os;                                      \
-    __assert_private_os << #x << " is false, " << _FILE_NAME << ":" << __LINE__; \
-    if (!std::string(hint).empty()) {                                            \
-      __assert_private_os << " (" << hint << ")";                                \
-    }                                                                            \
-    Assert(static_cast<bool>(x), __assert_private_os.str());                     \
+#define ASSERT_HINT(x, hint)                                        \
+  {                                                                 \
+    std::ostringstream __assert_private_os;                         \
+    __assert_private_os << #x << " is false, " << _FILE_NAME << ":" \
+                        << __LINE__;                                \
+    if (!std::string(hint).empty()) {                               \
+      __assert_private_os << " (" << hint << ")";                   \
+    }                                                               \
+    Assert(static_cast<bool>(x), __assert_private_os.str());        \
   }
 
 /**
  * Макрос `ASSERT` проверяет истинность выражения `x`. Выражение `x` должно
  * конвертироваться к типу `bool`.
- * Если выражение `x` ложно, тест считается проваленным. Если выражение `x` истинно,
- * выполнение теста продолжается.
+ * Если выражение `x` ложно, тест считается проваленным. Если выражение `x`
+ * истинно, выполнение теста продолжается.
  *
  * Пример:
  *  ```
@@ -305,11 +313,12 @@ class TestRunner {
  *  }
  *  ```
  */
-#define ASSERT(x)                                                                \
-  {                                                                              \
-    std::ostringstream __assert_private_os;                                      \
-    __assert_private_os << #x << " is false, " << _FILE_NAME << ":" << __LINE__; \
-    Assert(static_cast<bool>(x), __assert_private_os.str());                     \
+#define ASSERT(x)                                                   \
+  {                                                                 \
+    std::ostringstream __assert_private_os;                         \
+    __assert_private_os << #x << " is false, " << _FILE_NAME << ":" \
+                        << __LINE__;                                \
+    Assert(static_cast<bool>(x), __assert_private_os.str());        \
   }
 
 /**
@@ -336,48 +345,49 @@ class TestRunner {
 #define RUN_TEST(tr, func) tr.RunTest(func, #func)
 
 /**
- * Макрос `ASSERT_THROWS_HINT` проверяет, что при вычислении выражения `expr` будет
- * выброшено исключение типа `expected_exception`.
- * Если исключение выброшено не будет, либо выбросится исключение другого типа,
- * тест считается проваленным.
- * Строка `hint` будет включена в текст ошибки.
+ * Макрос `ASSERT_THROWS_HINT` проверяет, что при вычислении выражения `expr`
+ * будет выброшено исключение типа `expected_exception`. Если исключение
+ * выброшено не будет, либо выбросится исключение другого типа, тест считается
+ * проваленным. Строка `hint` будет включена в текст ошибки.
  *
  * Пример:
  *  ```
  *  void Test() {
  *    using namespace std;
- *    ASSERT_THROWS_HINT(stoi("not-a-number"s), invalid_argument, "stoi(string) throws");
+ *    ASSERT_THROWS_HINT(stoi("not-a-number"s), invalid_argument,
+ *                       "stoi(string) throws");
  *  }
  *  ```
  */
-#define ASSERT_THROWS_HINT(expr, expected_exception, hint)                                   \
-  {                                                                                          \
-    bool __assert_private_flag = true;                                                       \
-    try {                                                                                    \
-      expr;                                                                                  \
-      __assert_private_flag = false;                                                         \
-    } catch (expected_exception&) {                                                          \
-    } catch (...) {                                                                          \
-      std::ostringstream __assert_private_os;                                                \
-      __assert_private_os << "Expression " #expr                                             \
-                             " threw an unexpected exception"                                \
-                             " " _FILE_NAME ":"                                              \
-                          << __LINE__;                                                       \
-      if (!std::string(hint).empty()) {                                                      \
-        __assert_private_os << " (" << hint << ")";                                          \
-      }                                                                                      \
-      Assert(false, __assert_private_os.str());                                              \
-    }                                                                                        \
-    if (!__assert_private_flag) {                                                            \
-      std::ostringstream __assert_private_os;                                                \
-      __assert_private_os << "Expression " #expr                                             \
-                             " is expected to throw " #expected_exception " " _FILE_NAME ":" \
-                          << __LINE__;                                                       \
-      if (!std::string(hint).empty()) {                                                      \
-        __assert_private_os << " (" << hint << ")";                                          \
-      }                                                                                      \
-      Assert(false, __assert_private_os.str());                                              \
-    }                                                                                        \
+#define ASSERT_THROWS_HINT(expr, expected_exception, hint)                \
+  {                                                                       \
+    bool __assert_private_flag = true;                                    \
+    try {                                                                 \
+      expr;                                                               \
+      __assert_private_flag = false;                                      \
+    } catch (expected_exception &) {                                      \
+    } catch (...) {                                                       \
+      std::ostringstream __assert_private_os;                             \
+      __assert_private_os << "Expression " #expr                          \
+                             " threw an unexpected exception"             \
+                             " " _FILE_NAME ":"                           \
+                          << __LINE__;                                    \
+      if (!std::string(hint).empty()) {                                   \
+        __assert_private_os << " (" << hint << ")";                       \
+      }                                                                   \
+      Assert(false, __assert_private_os.str());                           \
+    }                                                                     \
+    if (!__assert_private_flag) {                                         \
+      std::ostringstream __assert_private_os;                             \
+      __assert_private_os << "Expression " #expr                          \
+                             " is expected to throw " #expected_exception \
+                             " " _FILE_NAME ":"                           \
+                          << __LINE__;                                    \
+      if (!std::string(hint).empty()) {                                   \
+        __assert_private_os << " (" << hint << ")";                       \
+      }                                                                   \
+      Assert(false, __assert_private_os.str());                           \
+    }                                                                     \
   }
 
 /**
@@ -394,13 +404,14 @@ class TestRunner {
  *  }
  *  ```
  */
-#define ASSERT_THROWS(expr, expected_exception) ASSERT_THROWS_HINT(expr, expected_exception, "")
+#define ASSERT_THROWS(expr, expected_exception) \
+  ASSERT_THROWS_HINT(expr, expected_exception, "")
 
 /**
- * Макрос `ASSERT_DOESNT_THROW_HINT` проверяет, что при вычислении выражения `expr`
- * не будет выброшено никаких исключений.
- * Если при вычислении выражения `expr` выбросится исключение, тест будет провален.
- * Строка `hint` будет включена в текст ошибки.
+ * Макрос `ASSERT_DOESNT_THROW_HINT` проверяет, что при вычислении выражения
+ * `expr` не будет выброшено никаких исключений. Если при вычислении выражения
+ * `expr` выбросится исключение, тест будет провален. Строка `hint` будет
+ * включена в текст ошибки.
  *
  * Пример:
  *  ```
@@ -411,37 +422,36 @@ class TestRunner {
  *  }
  *  ```
  */
-#define ASSERT_DOESNT_THROW_HINT(expr, hint)                    \
-    try {                                                       \
-        expr;                                                   \
-    } catch (std::exception &e) {                               \
-        std::ostringstream __assert_private_os;                 \
-        __assert_private_os << "Expression " #expr              \
-                               " threw an unexpected exception" \
-                               " "                              \
-                            << e.what()                         \
-                            << " " _FILE_NAME ":"               \
-                            << __LINE__;                        \
-        if (!std::string(hint).empty()) {                       \
-          __assert_private_os << " (" << hint << ")";           \
-        }                                                       \
-        Assert(false, __assert_private_os.str());               \
-    } catch (...) {                                             \
-        std::ostringstream __assert_private_os;                 \
-        __assert_private_os << "Expression " #expr              \
-                               " threw an unexpected exception" \
-                               " " _FILE_NAME ":"               \
-                            << __LINE__;                        \
-        if (!std::string(hint).empty()) {                       \
-          __assert_private_os << " (" << hint << ")";           \
-        }                                                       \
-        Assert(false, __assert_private_os.str());               \
-    }
+#define ASSERT_DOESNT_THROW_HINT(expr, hint)                           \
+  try {                                                                \
+    expr;                                                              \
+  } catch (std::exception & e) {                                       \
+    std::ostringstream __assert_private_os;                            \
+    __assert_private_os << "Expression " #expr                         \
+                           " threw an unexpected exception"            \
+                           " "                                         \
+                        << e.what() << " " _FILE_NAME ":" << __LINE__; \
+    if (!std::string(hint).empty()) {                                  \
+      __assert_private_os << " (" << hint << ")";                      \
+    }                                                                  \
+    Assert(false, __assert_private_os.str());                          \
+  } catch (...) {                                                      \
+    std::ostringstream __assert_private_os;                            \
+    __assert_private_os << "Expression " #expr                         \
+                           " threw an unexpected exception"            \
+                           " " _FILE_NAME ":"                          \
+                        << __LINE__;                                   \
+    if (!std::string(hint).empty()) {                                  \
+      __assert_private_os << " (" << hint << ")";                      \
+    }                                                                  \
+    Assert(false, __assert_private_os.str());                          \
+  }
 
 /**
  * Макрос `ASSERT_DOESNT_THROW` проверяет, что при вычислении выражения `expr`
  * не будет выброшено никаких исключений.
- * Если при вычислении выражения `expr` выбросится исключение, тест будет провален.
+ * Если при вычислении выражения `expr` выбросится исключение, тест будет
+ * провален.
  *
  * Пример:
  *  ```
@@ -455,9 +465,10 @@ class TestRunner {
 #define ASSERT_DOESNT_THROW(expr) ASSERT_DOESNT_THROW_HINT(expr, "")
 
 /**
- * Проверяет, что элементы контейнера `container` имеют строго убывающий порядок.
+ * Проверяет, что элементы контейнера `container` имеют строго убывающий
+ * порядок.
  */
-template<typename Container>
+template <typename Container>
 inline void AssertItemsDescImpl(const Container &container,
                                 const std::string &hint) {
   if (container.empty()) {
@@ -468,7 +479,8 @@ inline void AssertItemsDescImpl(const Container &container,
   while (cur != container.cend()) {
     if (*cur >= *prev) {
       std::ostringstream os;
-      os << "Assertion failed: expected container items to be in strict descending order.";
+      os << "Assertion failed: expected container items to be in strict "
+            "descending order.";
       if (!hint.empty()) {
         os << " hint: " << hint;
       }
@@ -495,22 +507,21 @@ inline void AssertItemsDescImpl(const Container &container,
  *  }
  *  ```
  */
-#define ASSERT_ITEMS_DESC_HINT(container, hint)                \
-  {                                                            \
-    std::ostringstream __assert_private_os;                    \
-    __assert_private_os << "Container " #container ", "        \
-                           _FILE_NAME  ":"                     \
-                        << __LINE__ ;                          \
-    if (!std::string(hint).empty()) {                          \
-      __assert_private_os << " (" << hint << ")";              \
-    }                                                          \
-    AssertItemsDescImpl(container, __assert_private_os.str()); \
+#define ASSERT_ITEMS_DESC_HINT(container, hint)                        \
+  {                                                                    \
+    std::ostringstream __assert_private_os;                            \
+    __assert_private_os << "Container " #container ", " _FILE_NAME ":" \
+                        << __LINE__;                                   \
+    if (!std::string(hint).empty()) {                                  \
+      __assert_private_os << " (" << hint << ")";                      \
+    }                                                                  \
+    AssertItemsDescImpl(container, __assert_private_os.str());         \
   }
 
 /**
  * Проверяет, что все элементы контейнера `container` равны
  */
-template<typename Container>
+template <typename Container>
 inline void AssertItemsEqualImpl(const Container &container,
                                  const std::string &hint) {
   if (container.empty()) {
@@ -544,18 +555,18 @@ inline void AssertItemsEqualImpl(const Container &container,
  *  }
  *  ```
  */
-#define ASSERT_ITEMS_EQUAL(container)                            \
-   {                                                             \
-     std::ostringstream __assert_private_os;                     \
-     __assert_private_os << "Container " #container ", "         \
-                            _FILE_NAME  ":"                      \
-                         << __LINE__ ;                           \
-     AssertItemsEqualImpl(container, __assert_private_os.str()); \
-   }
+#define ASSERT_ITEMS_EQUAL(container)                                  \
+  {                                                                    \
+    std::ostringstream __assert_private_os;                            \
+    __assert_private_os << "Container " #container ", " _FILE_NAME ":" \
+                        << __LINE__;                                   \
+    AssertItemsEqualImpl(container, __assert_private_os.str());        \
+  }
 
 /**
- * Сравнивает значения t и u. Если различаются больше чем на 0.0001%, тест проваливается.
- * Строка hint содержит подсказку, которая выводится, если тест провален.
+ * Сравнивает значения t и u. Если различаются больше чем на 0.0001%, тест
+ * проваливается. Строка hint содержит подсказку, которая выводится, если тест
+ * провален.
  *
  * Пример:
  *  ```
@@ -564,10 +575,10 @@ inline void AssertItemsEqualImpl(const Container &container,
  *  }
  *  ```
  */
-template<class T, class U>
-void AssertSoftEqual(const T &t, const U &u, const std::string &hint = { }) {
-  double diff = std::abs(static_cast<double>(t) - static_cast<double>(u))
-      / std::abs(static_cast<double>(t));
+template <class T, class U>
+void AssertSoftEqual(const T &t, const U &u, const std::string &hint = {}) {
+  double diff = std::abs(static_cast<double>(t) - static_cast<double>(u)) /
+                std::abs(static_cast<double>(t));
   const double cutoff = 1.001e-6;
   if (diff > cutoff) {
     std::ostringstream os;
@@ -582,9 +593,9 @@ void AssertSoftEqual(const T &t, const U &u, const std::string &hint = { }) {
 }
 
 /**
- * Макрос `ASSERT_SOFT_EQUAL_HINT` проверяет значения выражений `x` и `y` на мягкое равенство.
- * Если значения различаются больше чем на 0.000001%, тест считается проваленным.
- * Строка `hint` будет включена в текст ошибки.
+ * Макрос `ASSERT_SOFT_EQUAL_HINT` проверяет значения выражений `x` и `y` на
+ * мягкое равенство. Если значения различаются больше чем на 0.000001%, тест
+ * считается проваленным. Строка `hint` будет включена в текст ошибки.
  *
  * Пример:
  *  ```
@@ -595,20 +606,21 @@ void AssertSoftEqual(const T &t, const U &u, const std::string &hint = { }) {
  *  }
  *  ```
  */
-#define ASSERT_SOFT_EQUAL_HINT(x, y, hint)                                              \
-  {                                                                                     \
-    std::ostringstream __assert_private_os;                                             \
-    __assert_private_os << #x << " !≈ " << #y << ", " << _FILE_NAME << ":" << __LINE__; \
-    if (!std::string(hint).empty()) {                                                   \
-      __assert_private_os << " (" << hint << ")";                                       \
-    }                                                                                   \
-    AssertSoftEqual(x, y, __assert_private_os.str());                                   \
+#define ASSERT_SOFT_EQUAL_HINT(x, y, hint)                                 \
+  {                                                                        \
+    std::ostringstream __assert_private_os;                                \
+    __assert_private_os << #x << " !≈ " << #y << ", " << _FILE_NAME << ":" \
+                        << __LINE__;                                       \
+    if (!std::string(hint).empty()) {                                      \
+      __assert_private_os << " (" << hint << ")";                          \
+    }                                                                      \
+    AssertSoftEqual(x, y, __assert_private_os.str());                      \
   }
 
 /**
- * Макрос `ASSERT_SOFT_EQUAL` проверяет значения выражений `x` и `y` на мягкое равенство.
- * Если значения различаются больше чем на 0.000001%, тест считается проваленным.
- * Строка `hint` будет включена в текст ошибки.
+ * Макрос `ASSERT_SOFT_EQUAL` проверяет значения выражений `x` и `y` на мягкое
+ * равенство. Если значения различаются больше чем на 0.000001%, тест считается
+ * проваленным. Строка `hint` будет включена в текст ошибки.
  *
  * Пример:
  *  ```

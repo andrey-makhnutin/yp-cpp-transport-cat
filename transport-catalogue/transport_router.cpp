@@ -12,14 +12,12 @@ namespace transport_catalogue::router {
 
 Router::Router(const RouterSettings &settings,
                const TransportCatalogue &transport_catalogue)
-    :
-    settings_(settings),
-    transport_catalogue_(transport_catalogue) {
+    : settings_(settings), transport_catalogue_(transport_catalogue) {
   BuildStopGraph();
 }
 
 void Router::BuildStopGraph() {
-  unordered_map<const Stop*, graph::VertexId> id_by_stop;
+  unordered_map<const Stop *, graph::VertexId> id_by_stop;
   auto all_stops = transport_catalogue_.GetStops();
   {
     graph::VertexId id = 0;
@@ -42,18 +40,18 @@ void Router::BuildStopGraph() {
     auto v_from = id_by_stop.at(from) + 1;
     auto v_to = id_by_stop.at(to);
     auto time = route_len / v;
-    auto edge_id = stop_graph_.AddEdge( { v_from, v_to, time });
+    auto edge_id = stop_graph_.AddEdge({v_from, v_to, time});
     assert(edge_id == edges_.size());
-    edges_.push_back(BusEdge { bus, span_len });
+    edges_.push_back(BusEdge{bus, span_len});
   };
-  auto calc_part_lengths = [this](const vector<const Stop*> &stops,
+  auto calc_part_lengths = [this](const vector<const Stop *> &stops,
                                   bool inverse) {
     vector<double> part_lengths(stops.size() - 1);
     for (size_t i = 0; i < stops.size() - 1; ++i) {
       part_lengths[i] =
-          inverse ?
-              transport_catalogue_.GetRealDistance(stops[i + 1], stops[i]) :
-              transport_catalogue_.GetRealDistance(stops[i], stops[i + 1]);
+          inverse
+              ? transport_catalogue_.GetRealDistance(stops[i + 1], stops[i])
+              : transport_catalogue_.GetRealDistance(stops[i], stops[i + 1]);
     }
     return part_lengths;
   };
@@ -87,8 +85,8 @@ void Router::BuildStopGraph() {
       }
     }
     if (bus->route_type == RouteType::CIRCULAR) {
-      double depo_len = transport_catalogue_.GetRealDistance(stops.back(),
-                                                             stops[0]);
+      double depo_len =
+          transport_catalogue_.GetRealDistance(stops.back(), stops[0]);
       for (size_t i = 1; i < stops.size(); ++i) {
         add_bus_edge(
             bus, stops[i], stops[0], stops.size() - i,
@@ -99,9 +97,9 @@ void Router::BuildStopGraph() {
   for (const Stop *stop : all_stops) {
     auto v_wait = id_by_stop.at(stop);
     auto v_bus = v_wait + 1;
-    auto edge_id = stop_graph_.AddEdge( { v_wait, v_bus, w });
+    auto edge_id = stop_graph_.AddEdge({v_wait, v_bus, w});
     assert(edge_id == edges_.size());
-    edges_.push_back(WaitEdge { stop });
+    edges_.push_back(WaitEdge{stop});
   }
 
   router_ = make_unique<graph::Router<double>>(stop_graph_);
@@ -109,8 +107,8 @@ void Router::BuildStopGraph() {
 
 optional<RouteResult> Router::CalcRoute(string_view from,
                                         string_view to) const {
-  if (vertex_by_stop_name_.count(from) == 0
-      || vertex_by_stop_name_.count(to) == 0) {
+  if (vertex_by_stop_name_.count(from) == 0 ||
+      vertex_by_stop_name_.count(to) == 0) {
     return nullopt;
   }
   graph::VertexId v_from = vertex_by_stop_name_.at(from);
@@ -126,12 +124,12 @@ optional<RouteResult> Router::CalcRoute(string_view from,
     const auto &graph_edge = stop_graph_.GetEdge(edge_id);
     if (holds_alternative<WaitEdge>(edge)) {
       const auto &wait_edge = get<WaitEdge>(edge);
-      result.steps.push_back(WaitAction { string_view { wait_edge.stop->name },
-          graph_edge.weight });
+      result.steps.push_back(
+          WaitAction{string_view{wait_edge.stop->name}, graph_edge.weight});
     } else {
       const auto &bus_edge = get<BusEdge>(edge);
-      result.steps.push_back(BusAction { string_view { bus_edge.bus->name },
-          bus_edge.span_len, graph_edge.weight });
+      result.steps.push_back(BusAction{string_view{bus_edge.bus->name},
+                                       bus_edge.span_len, graph_edge.weight});
     }
     result.time += graph_edge.weight;
   }

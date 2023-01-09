@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath> // IWYU pragma: keep
+#include <cmath>  // IWYU pragma: keep
 #include <iterator>
 #include <memory>
 #include <optional>
@@ -26,18 +26,16 @@ const string STOP_LABEL_FONT_FAMILY = BUS_LABEL_FONT_FAMILY;
 const string STOP_LABEL_FILL_COLOR = "black"s;
 
 inline const double EPSILON = 1e-6;
-bool IsZero(double value) {
-  return abs(value) < EPSILON;
-}
+bool IsZero(double value) { return abs(value) < EPSILON; }
 
 class SphereProjector {
  public:
-  // points_begin и points_end задают начало и конец интервала элементов geo::Coordinates
-  template<typename PointInputIt>
+  // points_begin и points_end задают начало и конец интервала элементов
+  // geo::Coordinates
+  template <typename PointInputIt>
   SphereProjector(PointInputIt points_begin, PointInputIt points_end,
                   double max_width, double max_height, double padding)
-      :
-      padding_(padding)  //
+      : padding_(padding)  //
   {
     // Если точки поверхности сферы не заданы, вычислять нечего
     if (points_begin == points_end) {
@@ -45,18 +43,16 @@ class SphereProjector {
     }
 
     // Находим точки с минимальной и максимальной долготой
-    const auto [left_it, right_it] = minmax_element(points_begin, points_end,
-                                                    [](auto lhs, auto rhs) {
-                                                      return lhs.lng < rhs.lng;
-                                                    });
+    const auto [left_it, right_it] =
+        minmax_element(points_begin, points_end,
+                       [](auto lhs, auto rhs) { return lhs.lng < rhs.lng; });
     min_lon_ = left_it->lng;
     const double max_lon = right_it->lng;
 
     // Находим точки с минимальной и максимальной широтой
-    const auto [bottom_it, top_it] = minmax_element(points_begin, points_end,
-                                                    [](auto lhs, auto rhs) {
-                                                      return lhs.lat < rhs.lat;
-                                                    });
+    const auto [bottom_it, top_it] =
+        minmax_element(points_begin, points_end,
+                       [](auto lhs, auto rhs) { return lhs.lat < rhs.lat; });
     const double min_lat = bottom_it->lat;
     max_lat_ = top_it->lat;
 
@@ -87,10 +83,8 @@ class SphereProjector {
 
   // Проецирует широту и долготу в координаты внутри SVG-изображения
   svg::Point operator()(geo::Coordinates coords) const {
-    return {
-      (coords.lng - min_lon_) * zoom_coeff_ + padding_,
-      (max_lat_ - coords.lat) * zoom_coeff_ + padding_
-    };
+    return {(coords.lng - min_lon_) * zoom_coeff_ + padding_,
+            (max_lat_ - coords.lat) * zoom_coeff_ + padding_};
   }
 
  private:
@@ -106,7 +100,7 @@ struct SvgRenderContext {
   const RenderSettings &render_settings;
 };
 
-SphereProjector MakeSphereProjector(const vector<const Bus*> &buses,
+SphereProjector MakeSphereProjector(const vector<const Bus *> &buses,
                                     const RenderSettings &rs) {
   vector<geo::Coordinates> all_coords;
   for (const Bus *bus : buses) {
@@ -114,8 +108,8 @@ SphereProjector MakeSphereProjector(const vector<const Bus*> &buses,
       all_coords.push_back(stop->coords);
     }
   }
-  return SphereProjector { all_coords.begin(), all_coords.end(), rs.width, rs
-      .height, rs.padding };
+  return SphereProjector{all_coords.begin(), all_coords.end(), rs.width,
+                         rs.height, rs.padding};
 }
 
 /**
@@ -125,9 +119,8 @@ void RenderRoute(SvgRenderContext &ctx, const Bus *bus,
                  svg::Color route_color) {
   vector<geo::Coordinates> coords;
   const auto &rs = ctx.render_settings;
-  coords.reserve(
-      bus->route_type == RouteType::LINEAR ?
-          bus->stops.size() * 2 : bus->stops.size() + 1);
+  coords.reserve(bus->route_type == RouteType::LINEAR ? bus->stops.size() * 2
+                                                      : bus->stops.size() + 1);
   for (const Stop *stop : bus->stops) {
     coords.push_back(stop->coords);
   }
@@ -152,8 +145,10 @@ void RenderRoute(SvgRenderContext &ctx, const Bus *bus,
   for (auto coord : coords) {
     route_line->AddPoint(ctx.sphere_projector(coord));
   }
-  route_line->SetFillColor( { }).SetStrokeColor(route_color).SetStrokeWidth(
-      rs.line_width).SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+  route_line->SetFillColor({})
+      .SetStrokeColor(route_color)
+      .SetStrokeWidth(rs.line_width)
+      .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
       .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
   ctx.document.AddPtr(move(route_line));
 }
@@ -165,15 +160,20 @@ void RenderBusName(SvgRenderContext &ctx, const Bus *bus,
                    svg::Color route_color, geo::Coordinates stop_coords) {
   const auto &rs = ctx.render_settings;
   auto name_undertitle = make_unique<svg::Text>();
-  name_undertitle->SetData(bus->name).SetOffset(rs.bus_label_offset).SetFontSize(
-      rs.bus_label_font_size).SetFontFamily(BUS_LABEL_FONT_FAMILY).SetFontWeight(
-      BUS_LABEL_FONT_WEIGHT).SetPosition(ctx.sphere_projector(stop_coords));
+  name_undertitle->SetData(bus->name)
+      .SetOffset(rs.bus_label_offset)
+      .SetFontSize(rs.bus_label_font_size)
+      .SetFontFamily(BUS_LABEL_FONT_FAMILY)
+      .SetFontWeight(BUS_LABEL_FONT_WEIGHT)
+      .SetPosition(ctx.sphere_projector(stop_coords));
 
   auto name_label = make_unique<svg::Text>(*name_undertitle);
 
-  name_undertitle->SetFillColor(rs.underlayer_color).SetStrokeColor(
-      rs.underlayer_color).SetStrokeWidth(rs.underlayer_width).SetStrokeLineCap(
-      svg::StrokeLineCap::ROUND).SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+  name_undertitle->SetFillColor(rs.underlayer_color)
+      .SetStrokeColor(rs.underlayer_color)
+      .SetStrokeWidth(rs.underlayer_width)
+      .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+      .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
   name_label->SetFillColor(route_color);
 
@@ -183,8 +183,8 @@ void RenderBusName(SvgRenderContext &ctx, const Bus *bus,
 
 /**
  * Отрисовать названия маршрутов возле первой и последнй остановками маршрута.
- * Если маршрут кольцевой, или линейный, но первая и последняя остановки совпадают,
- * название отрисовывается только один раз.
+ * Если маршрут кольцевой, или линейный, но первая и последняя остановки
+ * совпадают, название отрисовывается только один раз.
  */
 void RenderBusLabels(SvgRenderContext &ctx, const Bus *bus,
                      svg::Color route_color) {
@@ -212,8 +212,8 @@ void RenderBusLabels(SvgRenderContext &ctx, const Bus *bus,
  * и `svg::Color` из цветовой палитры. Цвет берётся из палитры `color_palette`,
  * и перебирается в цикле.
  */
-template<class BusRenderer>
-void DoForEachBus(SvgRenderContext &ctx, const vector<const Bus*> &buses,
+template <class BusRenderer>
+void DoForEachBus(SvgRenderContext &ctx, const vector<const Bus *> &buses,
                   BusRenderer fn) {
   size_t color_index = 0;
   for (const Bus *bus : buses) {
@@ -229,24 +229,24 @@ void DoForEachBus(SvgRenderContext &ctx, const vector<const Bus*> &buses,
 /**
  * Отрисовывает маршруты на SVG карте.
  */
-void RenderBuses(SvgRenderContext &ctx, const vector<const Bus*> &buses) {
+void RenderBuses(SvgRenderContext &ctx, const vector<const Bus *> &buses) {
   DoForEachBus(ctx, buses, RenderRoute);
   DoForEachBus(ctx, buses, RenderBusLabels);
 }
 
 /**
- * Собирает уникальные остановки, входящие в маршруты `buses`, сортирует их по названию.
+ * Собирает уникальные остановки, входящие в маршруты `buses`, сортирует их по
+ * названию.
  */
-vector<const Stop*> CollectStops(const vector<const Bus*> &buses) {
-  vector<const Stop*> result;
+vector<const Stop *> CollectStops(const vector<const Bus *> &buses) {
+  vector<const Stop *> result;
   for (const Bus *bus : buses) {
     for (const Stop *stop : bus->stops) {
       result.push_back(stop);
     }
   }
-  sort(result.begin(), result.end(), [](const Stop *a, const Stop *b) {
-    return a->name < b->name;
-  });
+  sort(result.begin(), result.end(),
+       [](const Stop *a, const Stop *b) { return a->name < b->name; });
   auto last = unique(result.begin(), result.end());
   result.erase(last, result.end());
   return result;
@@ -258,8 +258,9 @@ vector<const Stop*> CollectStops(const vector<const Bus*> &buses) {
 void RenderStopCircle(SvgRenderContext &ctx, const Stop *stop) {
   const auto &rs = ctx.render_settings;
   auto circle = make_unique<svg::Circle>();
-  circle->SetCenter(ctx.sphere_projector(stop->coords)).SetRadius(
-      rs.stop_radius).SetFillColor(STOP_CIRCLE_FILL_COLOR);
+  circle->SetCenter(ctx.sphere_projector(stop->coords))
+      .SetRadius(rs.stop_radius)
+      .SetFillColor(STOP_CIRCLE_FILL_COLOR);
   ctx.document.AddPtr(move(circle));
 }
 
@@ -269,15 +270,19 @@ void RenderStopCircle(SvgRenderContext &ctx, const Stop *stop) {
 void RenderStopTitle(SvgRenderContext &ctx, const Stop *stop) {
   const auto &rs = ctx.render_settings;
   auto name_undertitle = make_unique<svg::Text>();
-  name_undertitle->SetData(stop->name).SetOffset(rs.stop_label_offset)
-      .SetFontSize(rs.stop_label_font_size).SetFontFamily(
-      STOP_LABEL_FONT_FAMILY).SetPosition(ctx.sphere_projector(stop->coords));
+  name_undertitle->SetData(stop->name)
+      .SetOffset(rs.stop_label_offset)
+      .SetFontSize(rs.stop_label_font_size)
+      .SetFontFamily(STOP_LABEL_FONT_FAMILY)
+      .SetPosition(ctx.sphere_projector(stop->coords));
 
   auto name_label = make_unique<svg::Text>(*name_undertitle);
 
-  name_undertitle->SetFillColor(rs.underlayer_color).SetStrokeColor(
-      rs.underlayer_color).SetStrokeWidth(rs.underlayer_width).SetStrokeLineCap(
-      svg::StrokeLineCap::ROUND).SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+  name_undertitle->SetFillColor(rs.underlayer_color)
+      .SetStrokeColor(rs.underlayer_color)
+      .SetStrokeWidth(rs.underlayer_width)
+      .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+      .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
   name_label->SetFillColor(STOP_LABEL_FILL_COLOR);
 
@@ -288,30 +293,27 @@ void RenderStopTitle(SvgRenderContext &ctx, const Stop *stop) {
 /**
  * Отрисовывает все остановки.
  */
-void RenderStops(SvgRenderContext &ctx, const vector<const Stop*> &stops) {
-  for_each(stops.begin(), stops.end(), [&ctx](const Stop *stop) {
-    RenderStopCircle(ctx, stop);
-  });
-  for_each(stops.begin(), stops.end(), [&ctx](const Stop *stop) {
-    RenderStopTitle(ctx, stop);
-  });
+void RenderStops(SvgRenderContext &ctx, const vector<const Stop *> &stops) {
+  for_each(stops.begin(), stops.end(),
+           [&ctx](const Stop *stop) { RenderStopCircle(ctx, stop); });
+  for_each(stops.begin(), stops.end(),
+           [&ctx](const Stop *stop) { RenderStopTitle(ctx, stop); });
 }
 
-}  // namespace transport_catalogue::map_renderer::detail
+}  // namespace detail
 
 /**
  * Отрисовать SVG карту с настройками `render_settings`.
  * SVG текст выводится в поток `out_`, переданный в конструкторе.
- * Маршруты и остановки берутся из `transport_catalogue_`, переданного в конструкторе.
+ * Маршруты и остановки берутся из `transport_catalogue_`, переданного в
+ * конструкторе.
  */
 void SvgMapRenderer::RenderMap(const RenderSettings &render_settings) {
   auto buses = transport_catalogue_.GetBuses();
-  detail::SvgRenderContext ctx { detail::MakeSphereProjector(buses,
-                                                             render_settings),
-      { }, render_settings };
-  sort(buses.begin(), buses.end(), [](const Bus *a, const Bus *b) {
-    return a->name < b->name;
-  });
+  detail::SvgRenderContext ctx{
+      detail::MakeSphereProjector(buses, render_settings), {}, render_settings};
+  sort(buses.begin(), buses.end(),
+       [](const Bus *a, const Bus *b) { return a->name < b->name; });
   detail::RenderBuses(ctx, buses);
   detail::RenderStops(ctx, detail::CollectStops(buses));
 
